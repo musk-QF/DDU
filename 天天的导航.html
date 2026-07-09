@@ -1,0 +1,1476 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>天天的导航</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f5f2;
+      --panel: #ffffff;
+      --panel-soft: #eef0ed;
+      --text: #1d2424;
+      --muted: #687170;
+      --line: #dfe3df;
+      --shadow: 0 18px 45px rgba(34, 43, 43, .09);
+      --shadow-soft: 0 8px 20px rgba(34, 43, 43, .07);
+      --teal: #157c72;
+      --coral: #d85f48;
+      --gold: #b98a2f;
+      --ink: #273134;
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Fredoka", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Segoe UI", Roboto, "Microsoft YaHei", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 42px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 26px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mark {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #ffe08a, #f5b942);
+      color: #7a4a06;
+      font-weight: 800;
+      box-shadow: var(--shadow-soft);
+      flex: 0 0 auto;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.15;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .ghost-btn,
+    .primary-btn {
+      min-height: 38px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      padding: 0 13px;
+      cursor: pointer;
+      transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+    }
+
+    .ghost-btn {
+      background: rgba(255, 255, 255, .65);
+      color: var(--text);
+    }
+
+    .primary-btn {
+      border-color: #e0a324;
+      background: linear-gradient(135deg, #ffe08a, #f5b942);
+      color: #7a4a06;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .ghost-btn:hover,
+    .primary-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 14px;
+    }
+
+    .search-panel,
+    .today-panel {
+      background: var(--panel);
+      border: 1px solid rgba(223, 227, 223, .86);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .search-panel {
+      padding: 12px 18px;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--coral);
+    }
+
+    .search-panel h2 {
+      margin: 0 0 10px;
+      max-width: 680px;
+      font-size: clamp(18px, 2.6vw, 28px);
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 15px;
+      background: var(--panel-soft);
+      color: var(--text);
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: rgba(21, 124, 114, .55);
+      box-shadow: 0 0 0 3px rgba(21, 124, 114, .11);
+    }
+
+    .search-hints {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .hint {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      padding: 4px 9px;
+      color: var(--muted);
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .today-panel {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+
+    .today-panel h3 {
+      margin: 0 0 6px;
+      font-size: 14px;
+    }
+
+    #pickIcon {
+      width: 32px;
+      height: 32px;
+      font-size: 13px;
+    }
+
+    @keyframes pickPop {
+      0% {
+        transform: scale(.97);
+      }
+
+      55% {
+        transform: scale(1.02);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .pick-card {
+      margin-top: auto;
+      border-radius: 8px;
+      background: #f7f3ea;
+      border: 1px solid #eadfc9;
+      padding: 10px;
+    }
+
+    .pick-card.pop {
+      animation: pickPop .32s ease;
+    }
+
+    .pick-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .pick-card p {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 0 14px;
+      scrollbar-width: thin;
+    }
+
+    .tab {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .72);
+      color: var(--muted);
+      min-height: 36px;
+      padding: 0 14px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      background: linear-gradient(135deg, #ffe08a, #f5b942);
+      border-color: #e0a324;
+      color: #7a4a06;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 12px;
+      margin: 8px 0 13px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .section-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .count {
+      color: var(--muted);
+      font-size: 13px;
+      flex: 0 0 auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    @keyframes cardFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .site-card {
+      position: relative;
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+      min-height: 84px;
+      padding: 14px;
+      border: 1px solid rgba(223, 227, 223, .9);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, .9);
+      box-shadow: var(--shadow-soft);
+      transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .2s ease;
+      animation: cardFadeIn .4s ease backwards;
+    }
+
+    .card-actions {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      display: flex;
+      gap: 4px;
+      z-index: 1;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .15s ease;
+    }
+
+    .site-card:hover .card-actions,
+    .site-card:focus-within .card-actions {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .delete-btn,
+    .edit-btn {
+      width: 22px;
+      height: 22px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(29, 36, 36, .08);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .delete-btn {
+      font-size: 14px;
+    }
+
+    .delete-btn:hover {
+      background: var(--coral);
+      color: #fff;
+    }
+
+    .edit-btn:hover {
+      background: var(--teal);
+      color: #fff;
+    }
+
+    .site-card:hover {
+      transform: translateY(-2px);
+      border-color: #7dd3fc;
+      background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+      box-shadow: 0 18px 34px rgba(34, 43, 43, .12);
+    }
+
+    .icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid rgba(0, 0, 0, .04);
+      flex: 0 0 auto;
+      background: #eef0ed;
+    }
+
+    .icon img {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
+    .fallback {
+      font-weight: 800;
+      font-size: 15px;
+    }
+
+    .card-body {
+      min-width: 0;
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      font-weight: 600;
+      line-height: 1.25;
+    }
+
+    .card-title span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tag {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: #e7f1ef;
+      color: var(--teal);
+      padding: 3px 7px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .tag.hot {
+      background: #f8e9e4;
+      color: var(--coral);
+    }
+
+    .visit-badge {
+      flex: 0 0 auto;
+      font-size: 10px;
+      color: var(--gold);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .card-desc {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .empty {
+      display: none;
+      margin-top: 18px;
+      padding: 20px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      text-align: center;
+      background: rgba(255, 255, 255, .56);
+    }
+
+    .edit-guide {
+      margin-top: 24px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      background: rgba(255, 255, 255, .72);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .edit-guide code {
+      color: var(--text);
+      background: #edf0ec;
+      border-radius: 6px;
+      padding: 2px 5px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 20px;
+      background: rgba(29, 36, 36, .38);
+      z-index: 10;
+    }
+
+    .modal.open {
+      display: grid;
+    }
+
+    .modal-card {
+      width: min(520px, 100%);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 22px 70px rgba(0, 0, 0, .22);
+      padding: 18px;
+    }
+
+    .modal-card h3 {
+      margin: 0 0 14px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .field input,
+    .field select {
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 11px;
+      background: #f7f8f6;
+      color: var(--text);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: end;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .confirm-card {
+      width: min(400px, 100%);
+    }
+
+    .confirm-text {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .confirm-text strong {
+      color: var(--text);
+    }
+
+    .danger-btn {
+      min-height: 38px;
+      border-radius: 8px;
+      border: 1px solid var(--coral);
+      padding: 0 13px;
+      cursor: pointer;
+      background: var(--coral);
+      color: #fff;
+      transition: transform .16s ease, box-shadow .16s ease, opacity .16s ease;
+    }
+
+    .danger-btn:hover {
+      opacity: .88;
+      transform: translateY(-1px);
+    }
+
+    body.dark {
+      color-scheme: dark;
+      --bg: #181c1d;
+      --panel: #222829;
+      --panel-soft: #1b2021;
+      --text: #edf1ee;
+      --muted: #a7afad;
+      --line: #343d3f;
+      --shadow: 0 18px 45px rgba(0, 0, 0, .25);
+      --shadow-soft: 0 8px 20px rgba(0, 0, 0, .18);
+      --ink: #e8eee9;
+    }
+
+    body.dark .ghost-btn,
+    body.dark .hint,
+    body.dark .site-card,
+    body.dark .search-panel,
+    body.dark .today-panel,
+    body.dark .edit-guide,
+    body.dark .modal-card {
+      background: var(--panel);
+    }
+
+    body.dark .pick-card {
+      background: #2b2920;
+      border-color: #4b422c;
+    }
+
+    body.dark .delete-btn,
+    body.dark .edit-btn {
+      background: rgba(237, 241, 238, .12);
+      color: var(--muted);
+    }
+
+    body.dark .site-card:hover {
+      background: linear-gradient(135deg, #0c2a3d, #123a52);
+      border-color: #2a5a7a;
+    }
+
+    @media (max-width: 920px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 620px) {
+      .page {
+        width: min(100% - 22px, 1180px);
+        padding-top: 18px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .top-actions {
+        width: 100%;
+      }
+
+      .top-actions button {
+        flex: 1;
+      }
+
+      .brand h1 {
+        font-size: 18px;
+      }
+
+      .brand p {
+        white-space: normal;
+      }
+
+      .search-panel {
+        padding: 12px 14px;
+      }
+
+      .search-row {
+        grid-template-columns: 1fr;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .site-card {
+        min-height: 78px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="回到顶部">
+        <div class="mark">天</div>
+        <div>
+          <h1>天天的导航</h1>
+          <p>在线电影、资源工具和那些不想忘掉的有趣网站。</p>
+        </div>
+      </a>
+      <div class="top-actions">
+        <button class="ghost-btn" id="themeBtn" type="button">夜间模式</button>
+        <button class="primary-btn" id="addBtn" type="button">添加网址</button>
+      </div>
+    </header>
+
+    <section class="hero" aria-label="搜索和推荐">
+      <div class="search-panel">
+        <div class="eyebrow"><span class="dot"></span><span>私人收藏馆</span></div>
+        <h2>想看电影，找工具，或者随手打开一个好玩的站。</h2>
+        <div class="search-row">
+          <input class="search-input" id="searchInput" type="search" placeholder="搜索网站名、描述或分类，比如：电影、字幕、AI、冷门">
+          <button class="primary-btn" id="webSearchBtn" type="button">网页搜索</button>
+        </div>
+        <div class="search-hints" id="searchHints"></div>
+      </div>
+
+      <aside class="today-panel" aria-label="今晚推荐">
+        <h3>今晚随便看点什么</h3>
+        <div class="pick-card">
+          <div class="pick-title">
+            <span class="icon fallback" id="pickIcon">片</span>
+            <span id="pickName">准备抽一个</span>
+          </div>
+          <p id="pickDesc">点一下随机按钮，从你的收藏里挑一个网站打开。</p>
+          <button class="ghost-btn" id="randomBtn" type="button">随机一个</button>
+        </div>
+      </aside>
+    </section>
+
+    <nav class="tabs" id="tabs" aria-label="网站分类"></nav>
+
+    <section>
+      <div class="section-head">
+        <div>
+          <h2 id="sectionTitle">全部收藏</h2>
+          <p>每张卡片都是一个入口，适合电脑快速扫，也适合手机点。</p>
+        </div>
+        <div class="count" id="countText"></div>
+      </div>
+      <div class="grid" id="siteGrid"></div>
+      <div class="empty" id="emptyState">没有找到匹配的网站。换个关键词试试。</div>
+    </section>
+
+    <section class="edit-guide">
+      <strong>怎么换成你的收藏：</strong>
+      打开这个 HTML 文件，搜索 <code>const builtinSites</code>，照着里面的格式添加你的网址。
+      也可以直接点右上角“添加网址”，临时保存在当前浏览器里。正式长期使用时，建议把常用网址写进文件里的列表。
+    </section>
+  </main>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <h3 id="modalTitle">添加一个网址</h3>
+      <div class="form-grid">
+        <label class="field">名称
+          <input id="newName" placeholder="例如：片库、字幕库、奇怪的网站">
+        </label>
+        <label class="field">网址
+          <input id="newUrl" placeholder="https://example.com">
+        </label>
+        <label class="field">分类
+          <select id="newCategory"></select>
+        </label>
+        <label class="field">简介
+          <input id="newDesc" placeholder="一句话说明这个网站好在哪">
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button class="ghost-btn" id="cancelAdd" type="button">取消</button>
+        <button class="primary-btn" id="saveAdd" type="button">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="modal-card confirm-card">
+      <h3 id="confirmTitle">删除这个网址？</h3>
+      <p class="confirm-text" id="confirmText"></p>
+      <div class="modal-actions">
+        <button class="ghost-btn" id="cancelDelete" type="button">取消</button>
+        <button class="danger-btn" id="confirmDelete" type="button">删除</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const builtinSites = [
+      {
+        name: "文本转语音",
+        url: "https://www.textavoice.com/",
+        category: "实用工具",
+        desc: "免费文本转语音 (TTS) 转换器，将文本朗读为 MP3",
+        tag: "语音"
+      },
+      {
+        name: "妙搜云",
+        url: "https://msmy.cn/",
+        category: "影视工具",
+        desc: "专业网盘资源搜索分享平台，聚合全网优质网盘链接",
+        tag: "网盘"
+      },
+      {
+        name: "磁力魔",
+        url: "https://cilimo.com/",
+        category: "影视工具",
+        desc: "磁力搜索引擎，磁力链接搜索与DHT分布式",
+        tag: "磁力"
+      },
+      {
+        name: "metiq",
+        url: "https://metiq.space/",
+        category: "有趣网站",
+        desc: "在3D地球仪上实时显示100个公共数据集",
+        tag: "数据"
+      },
+      {
+        name: "蛋蛋魔法影视",
+        url: "https://www.ddmf.net/",
+        category: "在线电影",
+        desc: "临时添加的网站。",
+        tag: "影视"
+      },
+      {
+        name: "乡土游戏馆",
+        url: "https://youxi.pomodiary.com/",
+        category: "有趣网站",
+        desc: "复刻中国民间老游戏",
+        tag: "怀旧"
+      },
+      {
+        name: "Showpaw",
+        url: "https://www.showpaw.xyz/",
+        category: "影视工具",
+        desc: "影视网盘资源聚合搜索引擎",
+        tag: "网盘"
+      },
+      {
+        name: "折叠飞行",
+        url: "https://www.foldnfly.com/",
+        category: "有趣网站",
+        desc: "在线教折纸飞机",
+        tag: "好玩"
+      },
+      {
+        name: "全平台黑话",
+        url: "https://search-sharp.com/",
+        category: "实用工具",
+        desc: "互联网商品黑话大全，方便在闲鱼、小红书等网站搜索被屏蔽的商品",
+        tag: "查询"
+      },
+      {
+        name: "FiNews 美股日报",
+        url: "https://finews.elsetech.app/",
+        category: "有趣网站",
+        desc: "聚合每日美股盘后动态的日报网站",
+        tag: "财经"
+      },
+      {
+        name: "古人曰",
+        url: "https://gurensaid.com/",
+        category: "有趣网站",
+        desc: "现代话 / 网络热梗，古人早就说过",
+        tag: "热梗"
+      },
+      {
+        name: "ScreenTools",
+        url: "https://screentools.co/",
+        category: "实用工具",
+        desc: "适用于各种屏幕的100多种免费浏览器工具",
+        tag: "工具"
+      },
+      {
+        name: "芝士游戏",
+        url: "https://www.cheesegame.org/",
+        category: "有趣网站",
+        desc: "免费游戏下载站",
+        tag: "游戏"
+      },
+      {
+        name: "临时邮箱",
+        url: "https://tmail.io/",
+        category: "实用工具",
+        desc: "临时一次性邮箱",
+        tag: "邮箱"
+      },
+      {
+        name: "美剧粉",
+        url: "https://www.mjf2020.com/",
+        category: "在线电影",
+        desc: "美剧下载，4k、1080p美剧、720p高清BT迅雷种子下载",
+        tag: "美剧"
+      },
+      {
+        name: "小鸭看看",
+        url: "https://xiaoyakankan.com/",
+        category: "在线电影",
+        desc: "新剧免费看",
+        tag: "新剧"
+      },
+      {
+        name: "UFO Timeline",
+        url: "https://ufotimeline.com/",
+        category: "有趣网站",
+        desc: "关于UFO重要资讯时间线整理",
+        tag: "冷知识"
+      },
+      {
+        name: "🍉西瓜卡通",
+        url: "https://www.xgcartoon.com/",
+        category: "动画动漫",
+        desc: "在线动漫站",
+        tag: "动漫"
+      },
+      {
+        name: "第三眼",
+        url: "https://geospatialcommand.center/",
+        category: "有趣网站",
+        desc: "开源情报平台，实时航班追踪、闭路电视监控、开源情报工具",
+        tag: "情报"
+      },
+      {
+        name: "大盘云图",
+        url: "https://www.dapanyuntu.com/",
+        category: "有趣网站",
+        desc: "大盘走势，尽在掌握",
+        tag: "股市"
+      },
+      {
+        name: "Famelack",
+        url: "https://famelack.com/",
+        category: "在线电影",
+        desc: "免费观看全球直播电视，全球及本地频道",
+        tag: "直播"
+      },
+      {
+        name: "爱下电子书",
+        url: "https://ixdzs8.com/",
+        category: "有趣网站",
+        desc: "享受阅读的乐趣！",
+        tag: "阅读"
+      },
+      {
+        name: "麦田影院",
+        url: "https://www.mtyy1.cc/",
+        category: "在线电影",
+        desc: "好看的电影电视剧，海量高清影视免费在线观看",
+        tag: "影院"
+      },
+      {
+        name: "电影人生",
+        url: "https://dyrsok.vip/",
+        category: "在线电影",
+        desc: "免费电影、高清电影在线观看",
+        tag: "影院"
+      },
+      {
+        name: "Moovie",
+        url: "https://moovie.c2v2.com/",
+        category: "影视工具",
+        desc: "发现你的下一部电影，让找片变得简单一点",
+        tag: "推荐"
+      },
+      {
+        name: "GitHub",
+        url: "https://github.com/",
+        category: "实用工具",
+        desc: "临时添加的网站。",
+        tag: "开发"
+      },
+      {
+        name: "喷嚏网",
+        url: "https://www.dapenti.com/blog/index.asp",
+        category: "有趣网站",
+        desc: "阅读、发现和分享：8小时外的健康生活",
+        tag: "博客"
+      },
+      {
+        name: "HiFiNi - 音乐磁场",
+        url: "https://www.hifiti.com/",
+        category: "有趣网站",
+        desc: "无损音乐下载，高清MV、FLAC、MP3高品质音乐免费下载试听",
+        tag: "音乐"
+      },
+      {
+        name: "Threads",
+        url: "https://www.threads.com/",
+        category: "有趣网站",
+        desc: "临时添加的网站。",
+        tag: "社交"
+      },
+      {
+        name: "九妖电影",
+        url: "https://www.91zxdy.com/",
+        category: "在线电影",
+        desc: "九妖在线电影，最新Netflix新剧、韩国电影免费在线观看",
+        tag: "影院"
+      },
+      {
+        name: "低端影视",
+        url: "https://ddys.io/",
+        category: "在线电影",
+        desc: "免费高清在线电影电视剧观看",
+        tag: "影院"
+      },
+      {
+        name: "爱看机器人",
+        url: "https://www1.ikanbot.com/",
+        category: "在线电影",
+        desc: "临时添加的网站。",
+        tag: "影院"
+      },
+      {
+        name: "蛋蛋赞影院",
+        url: "https://dandanzan.org/",
+        category: "在线电影",
+        desc: "最新最全高清在线影院",
+        tag: "影院"
+      },
+      {
+        name: "努努影院",
+        url: "https://nnyy.in/",
+        category: "在线电影",
+        desc: "临时添加的网站。",
+        tag: "影院"
+      },
+      {
+        name: "片库入口",
+        url: "https://example.com",
+        category: "在线电影",
+        desc: "把你最常用的在线电影站放这里。",
+        tag: "常用"
+      },
+      {
+        name: "冷门片源",
+        url: "https://example.com",
+        category: "在线电影",
+        desc: "适合找老片、冷门片和补档资源。",
+        tag: "私藏"
+      },
+      {
+        name: "高清资源站",
+        url: "https://example.com",
+        category: "在线电影",
+        desc: "偏高清画质和片源整理。",
+        tag: "HD"
+      },
+      {
+        name: "字幕搜索",
+        url: "https://example.com",
+        category: "影视工具",
+        desc: "找外挂字幕、双语字幕和字幕时间轴。",
+        tag: "工具"
+      },
+      {
+        name: "豆瓣电影",
+        url: "https://movie.douban.com",
+        category: "影视工具",
+        desc: "查评分、影人、片单和短评。",
+        tag: "评分"
+      },
+      {
+        name: "IMDb",
+        url: "https://www.imdb.com",
+        category: "影视工具",
+        desc: "查海外电影资料、演员和剧集信息。",
+        tag: "资料"
+      },
+      {
+        name: "动漫补番",
+        url: "https://example.com",
+        category: "动画动漫",
+        desc: "番剧、剧场版和旧动画入口。",
+        tag: "番剧"
+      },
+      {
+        name: "漫画收藏",
+        url: "https://example.com",
+        category: "动画动漫",
+        desc: "适合收藏漫画站、图源站和阅读入口。",
+        tag: "阅读"
+      },
+      {
+        name: "今日热榜",
+        url: "https://tophub.today",
+        category: "有趣网站",
+        desc: "快速看看今天互联网上发生了什么。",
+        tag: "热榜"
+      },
+      {
+        name: "少数派",
+        url: "https://sspai.com",
+        category: "有趣网站",
+        desc: "数字生活、效率工具和好玩的新东西。",
+        tag: "阅读"
+      },
+      {
+        name: "有趣工具箱",
+        url: "https://example.com",
+        category: "实用工具",
+        desc: "二维码、格式转换、临时邮箱、图片处理都可以放这里。",
+        tag: "效率"
+      },
+      {
+        name: "网盘搜索",
+        url: "https://example.com",
+        category: "实用工具",
+        desc: "找网盘资源和备份链接时使用。",
+        tag: "搜索"
+      }
+    ];
+
+    const categories = ["全部", "在线电影", "影视工具", "动画动漫", "有趣网站", "实用工具"];
+    const storageKey = "personal-nav-sites";
+    const themeKey = "personal-nav-theme";
+    const hiddenKey = "personal-nav-hidden";
+    const clickKey = "personal-nav-clicks";
+
+    const state = {
+      activeCategory: "全部",
+      keyword: "",
+      customSites: JSON.parse(localStorage.getItem(storageKey) || "[]"),
+      hiddenUrls: JSON.parse(localStorage.getItem(hiddenKey) || "[]"),
+      clickCounts: JSON.parse(localStorage.getItem(clickKey) || "{}")
+    };
+
+    const tabs = document.getElementById("tabs");
+    const grid = document.getElementById("siteGrid");
+    const countText = document.getElementById("countText");
+    const sectionTitle = document.getElementById("sectionTitle");
+    const emptyState = document.getElementById("emptyState");
+    const searchInput = document.getElementById("searchInput");
+    const searchHints = document.getElementById("searchHints");
+    const modal = document.getElementById("modal");
+    const newCategory = document.getElementById("newCategory");
+
+    const iconPalette = [
+      { bg: "#dcf1ee", fg: "#157c72" },
+      { bg: "#fbe3db", fg: "#c2523c" },
+      { bg: "#f5ebd4", fg: "#a97b28" },
+      { bg: "#dde6fb", fg: "#3b62c2" },
+      { bg: "#e9e1f6", fg: "#7150ab" },
+      { bg: "#f7dfe9", fg: "#b23e70" },
+      { bg: "#dcf0e3", fg: "#298c51" },
+      { bg: "#fae3d0", fg: "#c76d24" },
+      { bg: "#dee1f7", fg: "#3d4eb0" },
+      { bg: "#ece0d5", fg: "#7c4f33" }
+    ];
+
+    function iconColor(site) {
+      const str = (site.url || site.name || "");
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+      return iconPalette[hash % iconPalette.length];
+    }
+
+    function allSites() {
+      return [...state.customSites, ...builtinSites].filter(site => !state.hiddenUrls.includes(site.url));
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? "").replace(/[&<>"']/g, ch => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[ch]));
+    }
+
+    function favicon(url) {
+      try {
+        const host = new URL(url).origin;
+        return `${host}/favicon.ico`;
+      } catch {
+        return "";
+      }
+    }
+
+    function filteredSites() {
+      const kw = state.keyword.trim().toLowerCase();
+      return allSites()
+        .filter(site => {
+          const categoryMatch = state.activeCategory === "全部" || site.category === state.activeCategory;
+          const text = `${site.name} ${site.category} ${site.desc} ${site.tag || ""}`.toLowerCase();
+          return categoryMatch && (!kw || text.includes(kw));
+        })
+        .sort((a, b) => (state.clickCounts[b.url] || 0) - (state.clickCounts[a.url] || 0));
+    }
+
+    function renderTabs() {
+      tabs.innerHTML = categories.map(category => (
+        `<button class="tab ${category === state.activeCategory ? "active" : ""}" type="button" data-category="${category}">${category}</button>`
+      )).join("");
+
+      newCategory.innerHTML = categories
+        .filter(category => category !== "全部")
+        .map(category => `<option value="${category}">${category}</option>`)
+        .join("");
+    }
+
+    function renderHints() {
+      const hints = ["电影", "字幕", "动漫", "网盘", "热榜", "AI", "工具", "冷门"];
+      searchHints.innerHTML = hints.map(hint => `<button class="hint" type="button">${hint}</button>`).join("");
+    }
+
+    function renderSites() {
+      const sites = filteredSites();
+      sectionTitle.textContent = state.activeCategory === "全部" ? "全部收藏" : state.activeCategory;
+      countText.textContent = `${sites.length} 个入口`;
+      emptyState.style.display = sites.length ? "none" : "block";
+      grid.innerHTML = sites.map((site, index) => {
+        const initial = escapeHtml((site.name || "站").slice(0, 1));
+        const tagClass = site.tag && ["常用", "私藏", "HD", "热榜"].includes(site.tag) ? "tag hot" : "tag";
+        const u = escapeHtml(site.url);
+        const color = iconColor(site);
+        const delay = Math.min(index * 30, 400);
+        const clicks = state.clickCounts[site.url] || 0;
+        const visitBadge = clicks >= 3 ? `<span class="visit-badge" title="点开过 ${clicks} 次">🔥常点</span>` : "";
+        const actions = `
+          <span class="card-actions">
+            <button class="edit-btn" type="button" data-url="${u}" title="编辑" aria-label="编辑">✎</button>
+            <button class="delete-btn" type="button" data-url="${u}" title="删除这个网址" aria-label="删除">×</button>
+          </span>
+        `;
+        return `
+          <a class="site-card" href="${escapeHtml(site.url)}" target="_blank" rel="noreferrer" style="animation-delay:${delay}ms">
+            <span class="icon" data-bg="${color.bg}" data-fg="${color.fg}">
+              <img src="${favicon(site.url)}" alt="" onerror="this.parentElement.classList.add('fallback'); this.parentElement.style.background=this.parentElement.dataset.bg; this.parentElement.style.color=this.parentElement.dataset.fg; this.parentElement.textContent='${initial}'">
+            </span>
+            <span class="card-body">
+              <span class="card-title">
+                <span>${escapeHtml(site.name)}</span>
+                ${site.tag ? `<span class="${tagClass}">${escapeHtml(site.tag)}</span>` : ""}
+                ${visitBadge}
+              </span>
+              <span class="card-desc">${escapeHtml(site.desc)}</span>
+            </span>
+            ${actions}
+          </a>
+        `;
+      }).join("");
+    }
+
+    function pickRandom(animate = true) {
+      const sites = filteredSites().length ? filteredSites() : allSites();
+      if (!sites.length) return;
+      const pickCard = document.querySelector(".pick-card");
+      const pickName = document.getElementById("pickName");
+      const pickDesc = document.getElementById("pickDesc");
+      const pickIcon = document.getElementById("pickIcon");
+
+      function settle() {
+        const site = sites[Math.floor(Math.random() * sites.length)];
+        const color = iconColor(site);
+        pickName.textContent = site.name;
+        pickDesc.textContent = site.desc;
+        pickIcon.textContent = (site.name || "站").slice(0, 1);
+        pickIcon.style.background = color.bg;
+        pickIcon.style.color = color.fg;
+        pickIcon.onclick = () => window.open(site.url, "_blank", "noreferrer");
+        pickCard.classList.remove("pop");
+        void pickCard.offsetWidth;
+        pickCard.classList.add("pop");
+      }
+
+      if (!animate || sites.length < 2) {
+        settle();
+        return;
+      }
+
+      let ticks = 0;
+      const maxTicks = 9;
+      const timer = setInterval(() => {
+        const temp = sites[Math.floor(Math.random() * sites.length)];
+        const color = iconColor(temp);
+        pickName.textContent = temp.name;
+        pickIcon.textContent = (temp.name || "站").slice(0, 1);
+        pickIcon.style.background = color.bg;
+        pickIcon.style.color = color.fg;
+        ticks++;
+        if (ticks >= maxTicks) {
+          clearInterval(timer);
+          settle();
+        }
+      }, 60);
+    }
+
+    let editingUrl = null;
+    let pendingDeleteUrl = null;
+    const confirmModal = document.getElementById("confirmModal");
+    const confirmText = document.getElementById("confirmText");
+
+    function findSite(url) {
+      return allSites().find(site => site.url === url);
+    }
+
+    function openAddModal(site) {
+      editingUrl = site ? site.url : null;
+      document.getElementById("modalTitle").textContent = site ? "编辑网址" : "添加一个网址";
+      document.getElementById("saveAdd").textContent = site ? "保存修改" : "保存";
+      document.getElementById("newName").value = site ? site.name : "";
+      document.getElementById("newUrl").value = site ? site.url : "";
+      document.getElementById("newDesc").value = site ? site.desc : "";
+      document.getElementById("newCategory").value = site ? site.category : categories[1];
+      modal.classList.add("open");
+      document.getElementById("newName").focus();
+    }
+
+    function performDelete(url) {
+      const wasCustom = state.customSites.some(site => site.url === url);
+      if (wasCustom) {
+        state.customSites = state.customSites.filter(site => site.url !== url);
+        localStorage.setItem(storageKey, JSON.stringify(state.customSites));
+      } else {
+        state.hiddenUrls.push(url);
+        localStorage.setItem(hiddenKey, JSON.stringify(state.hiddenUrls));
+      }
+      renderSites();
+    }
+
+    grid.addEventListener("click", event => {
+      const editButton = event.target.closest(".edit-btn");
+      const deleteButton = event.target.closest(".delete-btn");
+
+      if (!editButton && !deleteButton) {
+        const card = event.target.closest(".site-card");
+        if (card) {
+          const url = card.getAttribute("href");
+          state.clickCounts[url] = (state.clickCounts[url] || 0) + 1;
+          localStorage.setItem(clickKey, JSON.stringify(state.clickCounts));
+        }
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (editButton) {
+        const site = findSite(editButton.dataset.url);
+        if (site) openAddModal(site);
+        return;
+      }
+
+      const url = deleteButton.dataset.url;
+      const site = findSite(url);
+      pendingDeleteUrl = url;
+      confirmText.innerHTML = `确定要删除 <strong>${escapeHtml(site ? site.name : "这个网址")}</strong> 吗？删除后不能撤销。`;
+      confirmModal.classList.add("open");
+    });
+
+    document.getElementById("cancelDelete").addEventListener("click", () => {
+      pendingDeleteUrl = null;
+      confirmModal.classList.remove("open");
+    });
+
+    confirmModal.addEventListener("click", event => {
+      if (event.target === confirmModal) {
+        pendingDeleteUrl = null;
+        confirmModal.classList.remove("open");
+      }
+    });
+
+    document.getElementById("confirmDelete").addEventListener("click", () => {
+      if (pendingDeleteUrl) performDelete(pendingDeleteUrl);
+      pendingDeleteUrl = null;
+      confirmModal.classList.remove("open");
+    });
+
+    tabs.addEventListener("click", event => {
+      const button = event.target.closest("[data-category]");
+      if (!button) return;
+      state.activeCategory = button.dataset.category;
+      renderTabs();
+      renderSites();
+      pickRandom(false);
+    });
+
+    searchInput.addEventListener("input", event => {
+      state.keyword = event.target.value;
+      renderSites();
+    });
+
+    searchHints.addEventListener("click", event => {
+      const button = event.target.closest(".hint");
+      if (!button) return;
+      searchInput.value = button.textContent;
+      state.keyword = button.textContent;
+      renderSites();
+    });
+
+    document.getElementById("webSearchBtn").addEventListener("click", () => {
+      const query = searchInput.value.trim();
+      if (query) window.open(`https://www.bing.com/search?q=${encodeURIComponent(query)}`, "_blank", "noreferrer");
+    });
+
+    document.getElementById("randomBtn").addEventListener("click", () => pickRandom(true));
+
+    document.getElementById("addBtn").addEventListener("click", () => {
+      openAddModal(null);
+    });
+
+    document.getElementById("cancelAdd").addEventListener("click", () => {
+      editingUrl = null;
+      modal.classList.remove("open");
+    });
+
+    modal.addEventListener("click", event => {
+      if (event.target === modal) {
+        editingUrl = null;
+        modal.classList.remove("open");
+      }
+    });
+
+    document.getElementById("saveAdd").addEventListener("click", () => {
+      const name = document.getElementById("newName").value.trim();
+      const url = document.getElementById("newUrl").value.trim();
+      const category = document.getElementById("newCategory").value;
+      const desc = document.getElementById("newDesc").value.trim() || "临时添加的网站。";
+      if (!name || !/^https?:\/\//.test(url)) {
+        alert("请填写名称，并输入 http 或 https 开头的网址。");
+        return;
+      }
+
+      if (editingUrl) {
+        const wasCustom = state.customSites.some(site => site.url === editingUrl);
+        if (wasCustom) {
+          state.customSites = state.customSites.map(site =>
+            site.url === editingUrl ? { name, url, category, desc, tag: site.tag || "自定" } : site
+          );
+        } else {
+          // 内置网址：原条目隐藏，编辑结果作为自定义条目保存
+          if (!state.hiddenUrls.includes(editingUrl)) {
+            state.hiddenUrls.push(editingUrl);
+            localStorage.setItem(hiddenKey, JSON.stringify(state.hiddenUrls));
+          }
+          state.customSites.unshift({ name, url, category, desc, tag: "自定" });
+        }
+        localStorage.setItem(storageKey, JSON.stringify(state.customSites));
+      } else {
+        state.customSites.unshift({ name, url, category, desc, tag: "自定" });
+        localStorage.setItem(storageKey, JSON.stringify(state.customSites));
+      }
+
+      editingUrl = null;
+      modal.classList.remove("open");
+      document.getElementById("newName").value = "";
+      document.getElementById("newUrl").value = "";
+      document.getElementById("newDesc").value = "";
+      renderSites();
+    });
+
+    document.getElementById("themeBtn").addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      const isDark = document.body.classList.contains("dark");
+      localStorage.setItem(themeKey, isDark ? "dark" : "light");
+      document.getElementById("themeBtn").textContent = isDark ? "日间模式" : "夜间模式";
+    });
+
+    if (localStorage.getItem(themeKey) === "dark") {
+      document.body.classList.add("dark");
+      document.getElementById("themeBtn").textContent = "日间模式";
+    }
+
+    renderTabs();
+    renderHints();
+    renderSites();
+    pickRandom(false);
+  </script>
+</body>
+</html>
