@@ -517,6 +517,31 @@
       padding: 2px 5px;
     }
 
+    .comment-panel {
+      margin-top: 24px;
+      background: var(--panel);
+      border: 1px solid rgba(223, 227, 223, .86);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .comment-panel h2 {
+      margin: 0 0 6px;
+      font-size: 18px;
+    }
+
+    .comment-panel > p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    body.dark .comment-panel {
+      background: var(--panel);
+      border-color: var(--line);
+    }
+
     .modal {
       position: fixed;
       inset: 0;
@@ -755,6 +780,18 @@
       <strong>怎么换成你的收藏：</strong>
       打开这个 HTML 文件，搜索 <code>const builtinSites</code>，照着里面的格式添加你的网址。
       也可以直接点右上角“添加网址”，临时保存在当前浏览器里。正式长期使用时，建议把常用网址写进文件里的列表。
+    </section>
+
+    <section class="comment-panel">
+      <h2>留言板</h2>
+      <p>想推荐新网站，或者吐槽哪个链接失效了，都可以在这里留言。</p>
+      <div id="cusdis_thread"
+        data-host="https://cusdis.com"
+        data-app-id="68f378b7-c8b4-4344-90d5-74b9cb338595"
+        data-page-id="tiantian-nav"
+        data-page-url="https://musk-qf.github.io/DDU/"
+        data-page-title="天天的导航">
+      </div>
     </section>
   </main>
 
@@ -1455,11 +1492,18 @@
       renderSites();
     });
 
+    function syncCusdisTheme(isDark) {
+      if (window.CUSDIS && typeof window.CUSDIS.setTheme === "function") {
+        window.CUSDIS.setTheme(isDark ? "dark" : "light");
+      }
+    }
+
     document.getElementById("themeBtn").addEventListener("click", () => {
       document.body.classList.toggle("dark");
       const isDark = document.body.classList.contains("dark");
       localStorage.setItem(themeKey, isDark ? "dark" : "light");
       document.getElementById("themeBtn").textContent = isDark ? "日间模式" : "夜间模式";
+      syncCusdisTheme(isDark);
     });
 
     if (localStorage.getItem(themeKey) === "dark") {
@@ -1467,10 +1511,13 @@
       document.getElementById("themeBtn").textContent = "日间模式";
     }
 
+    syncCusdisTheme(document.body.classList.contains("dark"));
+
     renderTabs();
     renderHints();
     renderSites();
     pickRandom(false);
   </script>
+  <script async defer src="https://cusdis.com/js/cusdis.es.js"></script>
 </body>
 </html>
