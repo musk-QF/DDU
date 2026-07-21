@@ -20904,7 +20904,7 @@ body.dark .scroll-nav button {
         return `
           <a class="site-card" href="${escapeHtml(site.url)}" target="_blank" rel="noreferrer" style="animation-delay:${delay}ms">
             <span class="icon" data-bg="${color.bg}" data-fg="${color.fg}">
-              <img src="${favicon(site.url)}" alt="" onerror="this.parentElement.classList.add('fallback'); this.parentElement.style.background=this.parentElement.dataset.bg; this.parentElement.style.color=this.parentElement.dataset.fg; this.parentElement.textContent='${initial}'">
+              <img src="${favicon(site.url)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.classList.add('fallback'); this.parentElement.style.background=this.parentElement.dataset.bg; this.parentElement.style.color=this.parentElement.dataset.fg; this.parentElement.textContent='${initial}'; this.remove()">
             </span>
             <span class="card-body">
               <span class="card-title">
