@@ -11,17 +11,25 @@
 <style>
     :root {
       color-scheme: light;
-      --bg: #fffcf6;
-      --panel: rgba(255, 255, 255, 0.22);
-      --panel-soft: rgba(255, 255, 255, 0.15);
-      --text: #2b2418;
-      --muted: #7a6b52;
-      --line: rgba(212, 175, 55, 0.25);
-      --shadow: 0 20px 50px rgba(180,140,40,.12);
-      --shadow-soft: 0 10px 30px rgba(180,140,40,.08);
-      --teal: #c89b2c;
-      --coral: #d4af37;
-      --gold: #f2cf63;
+      --bg: #f2f7fb;
+      --panel: rgba(255, 255, 255, 0.35);
+      --panel-soft: rgba(255, 255, 255, 0.22);
+      --text: #24303d;
+      --muted: #64748b;
+      --line: rgba(47, 111, 168, 0.20);
+      --shadow: 0 20px 50px rgba(30,64,120,.10);
+      --shadow-soft: 0 10px 30px rgba(30,64,120,.07);
+      --teal: #3b82c4;
+      --coral: #2f6fa8;
+      --gold: #6fa8dc;
+      --accent-border: #235887;
+      --accent-ink: #f4faff;
+      --bg-grad-a: rgba(111,168,220,.28);
+      --bg-grad-b: rgba(47,111,168,.18);
+      --bg-grad-c1: #f5f9fc;
+      --bg-grad-c2: #dbe9f5;
+      --dark-glow-a: rgba(59,130,246,.35);
+      --dark-glow-b: rgba(56,189,248,.25);
       --radius: 20px;
       --glass-blur: 22px;
     }
@@ -34,9 +42,9 @@
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left,rgba(255,200,80,.45),transparent 42%),
-    radial-gradient(circle at bottom right,rgba(255,170,60,.35),transparent 42%),
-    linear-gradient(180deg,#fff8e8,#e6c98c);
+    radial-gradient(circle at top left,var(--bg-grad-a),transparent 42%),
+    radial-gradient(circle at bottom right,var(--bg-grad-b),transparent 42%),
+    linear-gradient(180deg,var(--bg-grad-c1),var(--bg-grad-c2));
   color: var(--text);
   font-family: "Fredoka", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Segoe UI", Roboto, "Microsoft YaHei", sans-serif;
   letter-spacing: 0;
@@ -79,8 +87,8 @@
       width: 42px;
       height: 42px;
       border-radius: 8px;
-      background: linear-gradient(135deg, #d4af37, #f5d76e);
-      color: #6b4b00;
+      background: linear-gradient(135deg, var(--coral), var(--gold));
+      color: var(--accent-ink);
       font-weight: 800;
       box-shadow: var(--shadow-soft);
       flex: 0 0 auto;
@@ -124,9 +132,9 @@
     }
 
     .primary-btn {
-      border-color: #e0a324;
-      background: linear-gradient(135deg, #ffe08a, #f5b942);
-      color: #7a4a06;
+      border-color: var(--accent-border);
+      background: linear-gradient(135deg, var(--coral), var(--gold));
+      color: var(--accent-ink);
       box-shadow: var(--shadow-soft);
     }
 
@@ -134,6 +142,59 @@
     .primary-btn:hover {
       transform: translateY(-1px);
       box-shadow: var(--shadow-soft);
+    }
+
+    #randomBtn {
+      background: linear-gradient(135deg, var(--coral), var(--gold));
+      border-color: var(--accent-border);
+      color: var(--accent-ink);
+    }
+
+    .theme-picker-wrap {
+      position: relative;
+    }
+    .theme-picker-panel {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      z-index: 200;
+      width: 208px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      box-shadow: var(--shadow);
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .theme-picker-panel.open {
+      display: grid;
+    }
+    .theme-swatch {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      padding: 0;
+      transition: transform .16s ease;
+    }
+    .theme-swatch:hover {
+      transform: scale(1.08);
+    }
+    .theme-swatch.active {
+      border-color: var(--text);
+    }
+    .theme-swatch .dot-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      display: block;
     }
 
     /* ========== 核心修改：hero区块高度压缩50% ========== */
@@ -194,7 +255,7 @@
     }
     .search-input:focus {
       border-color: rgba(212, 175, 55, .6);
-      box-shadow: 0 0 25px rgba(212,175,55,.25);
+      box-shadow: 0 0 25px rgba(47,111,168,.25);
     }
     .search-hints {
       display: flex;
@@ -203,7 +264,7 @@
       margin-top: 6px; /* 原14px减半 */
     }
     .hint {
-  border: 1px solid rgba(212,175,55,0.35);
+  border: 1px solid rgba(47,111,168,0.35);
   border-radius: 999px;
   background: rgba(255,255,255,0.45);
   backdrop-filter: blur(var(--glass-blur));
@@ -216,7 +277,7 @@
   transition: all 0.2s ease;
 }
 .hint:hover {
-  background: rgba(212,175,55,0.3);
+  background: rgba(47,111,168,0.3);
   color: #6b4200;
 }
     .today-panel {
@@ -239,7 +300,7 @@
       border-radius: 14px;
       background: rgba(247, 243, 234, 0.25);
       backdrop-filter: blur(var(--glass-blur));
-      border: 1px solid rgba(212,175,55,0.2);
+      border: 1px solid rgba(47,111,168,0.2);
       padding: 8px; /* 原14px砍半 */
     }
     .pick-card.pop {
@@ -301,16 +362,20 @@
       padding: 0 14px;
       white-space: nowrap;
       cursor: pointer;
-      transition: all 0.24s ease;
+      transition: transform .16s ease, box-shadow .16s ease, background .24s ease, color .24s ease;
+      animation: cardFadeIn .4s ease backwards;
+    }
+    .tab:hover {
+      transform: translateY(-1px);
     }
 
     .tab.active {
-      background: linear-gradient(135deg, #d4af37, #f5d76e);
-      border-color: #e0a324;
-      color: #4b3500;
+      background: linear-gradient(135deg, var(--coral), var(--gold));
+      border-color: var(--accent-border);
+      color: var(--accent-ink);
     }
     .tab:not(.active):hover {
-      background: rgba(212,175,55,0.15);
+      background: rgba(47,111,168,0.12);
     }
 
     .section-head {
@@ -407,8 +472,8 @@
     /* 悬浮动态效果 */
     .site-card:hover {
       transform: translateY(-8px) scale(1.02);
-      border-color: rgba(212,175,55,0.45);
-      box-shadow: 0 0 40px rgba(212,175,55,.22);
+      border-color: rgba(47,111,168,0.45);
+      box-shadow: 0 0 40px rgba(47,111,168,.22);
       background: rgba(255,255,255,0.35);
     }
     .site-card:hover::after {
@@ -652,7 +717,7 @@ body.dark .tag {
       border-radius: var(--radius);
       background: rgba(255,255,255,0.3);
       backdrop-filter: blur(30px);
-      border: 1px solid rgba(212,175,55,0.22);
+      border: 1px solid rgba(47,111,168,0.22);
       box-shadow: 0 22px 70px rgba(0, 0, 0, .22);
       padding: 22px;
     }
@@ -737,8 +802,8 @@ body.dark .tag {
     }
     body.dark {
       background:
-        radial-gradient(circle at 20% 10%,rgba(99,102,241,.35),transparent 35%),
-        radial-gradient(circle at 80% 90%,rgba(34,211,238,.25),transparent 35%),
+        radial-gradient(circle at 20% 10%,var(--dark-glow-a),transparent 35%),
+        radial-gradient(circle at 80% 90%,var(--dark-glow-b),transparent 35%),
         #070b14;
     }
 
@@ -755,17 +820,17 @@ body.dark .tag {
 
     body.dark .site-card:hover {
       background: rgba(255,255,255,0.14);
-      border-color: rgba(212,175,55,0.35);
-      box-shadow: 0 0 40px rgba(212,175,55,.18);
+      border-color: rgba(111,168,220,0.35);
+      box-shadow: 0 0 40px rgba(111,168,220,.18);
     }
     body.dark .hint {
   background: rgba(0,0,0,0.35);
-  color: #f2cf63;
-  border-color: rgba(255,210,100,0.25);
+  color: #6fa8dc;
+  border-color: rgba(111,168,220,0.25);
 }
 body.dark .hint:hover {
-  background: rgba(212,175,55,0.22);
-  color: #ffe08a;
+  background: rgba(47,111,168,0.22);
+  color: #a9cdea;
 }
     @media (max-width: 920px) {
       .hero {
@@ -894,7 +959,7 @@ body.dark .hint:hover {
   width: 35px;
   height: 35px;
   border-radius: 50%;
-  border: 1px solid rgba(212,175,55,0.35);
+  border: 1px solid rgba(47,111,168,0.35);
   background: var(--panel);
   backdrop-filter: blur(var(--glass-blur));
   color: #704b00;
@@ -1122,6 +1187,10 @@ body.dark .scroll-nav button {
 </div>
 </a>
 <div class="top-actions">
+<div class="theme-picker-wrap">
+<button class="ghost-btn" id="themeColorBtn" title="切换主题色" type="button" aria-haspopup="true" aria-expanded="false">🎨主题色</button>
+<div class="theme-picker-panel" id="themeColorPanel" role="menu"></div>
+</div>
 <button class="ghost-btn" id="themeBtn" type="button">夜间模式</button>
 <button class="primary-btn" id="addBtn" type="button">添加网址</button>
 </div>
@@ -1137,7 +1206,7 @@ body.dark .scroll-nav button {
 <div class="search-hints" id="searchHints"></div>
 </div>
 <aside aria-label="今晚推荐" class="today-panel">
-<h3>今晚随便看点什么</h3>
+<h3>今天随便看点什么</h3>
 <div class="pick-card">
 <div class="pick-title">
 <span class="icon fallback" id="pickIcon">片</span>
@@ -20867,9 +20936,10 @@ body.dark .scroll-nav button {
     }
 
     function renderTabs() {
-      tabs.innerHTML = categories.map(category => (
-        `<button class="tab ${category === state.activeCategory ? "active" : ""}" type="button" data-category="${category}">${category}</button>`
-      )).join("");
+      tabs.innerHTML = categories.map((category, index) => {
+        const delay = Math.min(index * 40, 400);
+        return `<button class="tab ${category === state.activeCategory ? "active" : ""}" type="button" data-category="${category}" style="animation-delay:${delay}ms">${category}</button>`;
+      }).join("");
 
       newCategory.innerHTML = categories
         .filter(category => category !== "全部")
@@ -21132,6 +21202,86 @@ body.dark .scroll-nav button {
         window.CUSDIS.setTheme(isDark ? "dark" : "light");
       }
     }
+
+    const THEME_PRESETS = [
+      { id: "blue",   name: "蓝色",   coral: "#2f6fa8", gold: "#6fa8dc", border: "#235887",
+        gradA: "rgba(111,168,220,.28)", gradB: "rgba(47,111,168,.18)", c1: "#f5f9fc", c2: "#dbe9f5", line: "rgba(47,111,168,0.20)",
+        darkA: "rgba(59,130,246,.35)", darkB: "rgba(56,189,248,.25)" },
+      { id: "coral",  name: "珊瑚粉", coral: "#c65b7c", gold: "#f0a8bf", border: "#9c4362",
+        gradA: "rgba(230,140,170,.28)", gradB: "rgba(198,91,124,.18)", c1: "#fdf5f7", c2: "#f6dbe4", line: "rgba(198,91,124,0.20)",
+        darkA: "rgba(236,72,120,.32)", darkB: "rgba(244,148,177,.22)" },
+      { id: "green",  name: "森绿",   coral: "#3f8f5f", gold: "#7ecb96", border: "#2f6b47",
+        gradA: "rgba(126,203,150,.28)", gradB: "rgba(63,143,95,.18)", c1: "#f4faf6", c2: "#d9f0e0", line: "rgba(63,143,95,0.20)",
+        darkA: "rgba(52,168,94,.32)", darkB: "rgba(94,214,132,.22)" },
+      { id: "violet", name: "紫罗兰", coral: "#7c5cbf", gold: "#b79ee8", border: "#5f4396",
+        gradA: "rgba(183,158,232,.28)", gradB: "rgba(124,92,191,.18)", c1: "#f8f5fc", c2: "#e5dbf5", line: "rgba(124,92,191,0.20)",
+        darkA: "rgba(139,92,246,.35)", darkB: "rgba(196,161,242,.22)" },
+      { id: "orange", name: "暖橙",   coral: "#d97b3f", gold: "#f5b97a", border: "#a85c2a",
+        gradA: "rgba(245,185,122,.28)", gradB: "rgba(217,123,63,.18)", c1: "#fdf7f1", c2: "#f5e0cc", line: "rgba(217,123,63,0.20)",
+        darkA: "rgba(245,146,63,.32)", darkB: "rgba(250,190,120,.22)" },
+      { id: "graphite", name: "石墨灰", coral: "#5b6472", gold: "#9aa5b1", border: "#454c57",
+        gradA: "rgba(154,165,177,.28)", gradB: "rgba(91,100,114,.18)", c1: "#f6f7f8", c2: "#dde1e5", line: "rgba(91,100,114,0.20)",
+        darkA: "rgba(120,131,145,.30)", darkB: "rgba(170,180,190,.18)" },
+      { id: "sakura", name: "樱花",   coral: "#e0729a", gold: "#f7c1d6", border: "#b8577c",
+        gradA: "rgba(247,193,214,.28)", gradB: "rgba(224,114,154,.18)", c1: "#fdf6f9", c2: "#f8d9e6", line: "rgba(224,114,154,0.20)",
+        darkA: "rgba(240,120,164,.32)", darkB: "rgba(250,190,212,.20)" },
+      { id: "mint",   name: "薄荷",   coral: "#2fa39a", gold: "#7fd6cd", border: "#1f7a73",
+        gradA: "rgba(127,214,205,.28)", gradB: "rgba(47,163,154,.18)", c1: "#f3fbfa", c2: "#d3f0ec", line: "rgba(47,163,154,0.20)",
+        darkA: "rgba(45,197,180,.32)", darkB: "rgba(120,230,215,.22)" },
+    ];
+    const themeColorKey = "personal-nav-accent";
+
+    function applyThemePreset(id, persist) {
+      const preset = THEME_PRESETS.find(p => p.id === id) || THEME_PRESETS[0];
+      const root = document.documentElement.style;
+      root.setProperty("--coral", preset.coral);
+      root.setProperty("--gold", preset.gold);
+      root.setProperty("--teal", preset.coral);
+      root.setProperty("--accent-border", preset.border);
+      root.setProperty("--line", preset.line);
+      root.setProperty("--bg-grad-a", preset.gradA);
+      root.setProperty("--bg-grad-b", preset.gradB);
+      root.setProperty("--bg-grad-c1", preset.c1);
+      root.setProperty("--bg-grad-c2", preset.c2);
+      root.setProperty("--dark-glow-a", preset.darkA);
+      root.setProperty("--dark-glow-b", preset.darkB);
+      if (persist) localStorage.setItem(themeColorKey, id);
+      document.querySelectorAll(".theme-swatch").forEach(el => {
+        el.classList.toggle("active", el.dataset.theme === id);
+      });
+    }
+
+    function renderThemePicker() {
+      const panel = document.getElementById("themeColorPanel");
+      panel.innerHTML = THEME_PRESETS.map(p => (
+        `<button class="theme-swatch" type="button" data-theme="${p.id}" title="${p.name}" aria-label="${p.name}">
+          <span class="dot-inner" style="background:linear-gradient(135deg, ${p.coral}, ${p.gold})"></span>
+        </button>`
+      )).join("");
+      panel.querySelectorAll(".theme-swatch").forEach(btn => {
+        btn.addEventListener("click", () => {
+          applyThemePreset(btn.dataset.theme, true);
+        });
+      });
+    }
+
+    renderThemePicker();
+    applyThemePreset(localStorage.getItem(themeColorKey) || "blue", false);
+
+    const themeColorBtn = document.getElementById("themeColorBtn");
+    const themeColorPanel = document.getElementById("themeColorPanel");
+    themeColorBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const willOpen = !themeColorPanel.classList.contains("open");
+      themeColorPanel.classList.toggle("open", willOpen);
+      themeColorBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    });
+    document.addEventListener("click", (e) => {
+      if (!themeColorPanel.contains(e.target) && e.target !== themeColorBtn) {
+        themeColorPanel.classList.remove("open");
+        themeColorBtn.setAttribute("aria-expanded", "false");
+      }
+    });
 
     document.getElementById("themeBtn").addEventListener("click", () => {
       document.body.classList.toggle("dark");
