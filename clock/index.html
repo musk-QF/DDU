@@ -3,9 +3,8 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<title>Flip Clock V11</title>
+<title>Flip Clock V10 Final</title>
 
 
 <style>
@@ -58,8 +57,6 @@ top:50%;
 
 margin:0;
 
-
-
 transform-origin:center center;
 
 display:flex;
@@ -70,8 +67,7 @@ align-items:center;
 
 justify-content:center;
 
-gap:5px;   /* ⭐ 时钟和日期间隔100px */
-
+gap:5px;
 
 }
 
@@ -89,11 +85,7 @@ gap:10px;
 
 position:relative;
 
-
-
 transform-origin:center center;
-
-
 
 }
 
@@ -352,7 +344,7 @@ flipTop .4s cubic-bezier(.55,.05,.25,1.15) forwards;
 
 animation:
 
-flipBottom .35s .35s linear both;
+flipBottom .35s .35s linear forwards;
 
 }
 
@@ -643,21 +635,6 @@ cursor:pointer;
 
 }
 
-
-
-
-
-
-/* 手机竖屏 */
-
-
-
-
-
-
-
-
-
 </style>
 
 
@@ -853,7 +830,6 @@ if(v===this.value)return;
 
 let old=this.value;
 
-// 上半页底层立即换成新值（翻走后即可见）
 this.el.querySelector(".top span").textContent=v;
 
 let top=document.createElement("div");
@@ -861,33 +837,20 @@ top.className="anim anim-top";
 top.innerHTML=`<span>${old}</span>`;
 this.el.appendChild(top);
 
-let bottom=document.createElement("div");
-bottom.className="anim anim-bottom";
-bottom.innerHTML=`<span>${v}</span>`;
-this.el.appendChild(bottom);
+requestAnimationFrame(()=>top.classList.add("flip-top"));
 
-requestAnimationFrame(()=>{
-top.classList.add("flip-top");
-bottom.classList.add("flip-bottom");
-});
-
-// flip-top 动画时长 0.4s，播完再移除，避免动画被截断
 setTimeout(()=>{
 top.remove();
-},400);
-
-// flip-bottom 动画（延迟0.35s + 时长0.35s = 0.7s）播完后
-// 再把真实下半页换成新值，并移除覆盖层，实现完整翻入效果
-setTimeout(()=>{
-bottom.remove();
 this.el.querySelector(".bottom span").textContent=v;
 this.value=v;
-},700);
+},350);
 }
 }
 
 const clock=document.getElementById("clock");
 const dateBox=document.getElementById("date");
+const clockWrapper=document.getElementById("clockWrapper");
+const scaleValue=document.getElementById("scaleValue");
 
 let digits=[];
 for(let i=0;i<6;i++){
@@ -909,7 +872,7 @@ clock.appendChild(ampm);
 
 
 // =============================
-// ✅ 设置读取（只保留一次）
+// 设置读取
 // =============================
 let saveData=JSON.parse(localStorage.getItem("flipClockSetting")||"{}");
 
@@ -944,52 +907,34 @@ let showDate = saveData.showDate ?? true;
 let is24Hour = saveData.is24Hour ?? true;
 let showSecond = saveData.showSecond ?? false;
 let clockScale = saveData.clockScale ?? 1;
-let baseScale = 3;
-
-
-
-
-// =============================
-// ✅ 缩放
-// =============================
+const baseScale = 3;
 const maxScale = 2;
-
 const minScale = 0.5;
 
+
+// =============================
+// 语言切换
+// =============================
 function changeLanguage(){
-
 let t = langText[lang];
-
 document.getElementById("settingTitle").innerHTML = t.setting;
-
 dateSwitch.parentElement.querySelector("span").innerHTML = t.date;
-
 hourSwitch.parentElement.querySelector("span").innerHTML = t.hour;
-
 secondSwitch.parentElement.querySelector("span").innerHTML = t.second;
-
 awakeSwitch.parentElement.querySelector("span").innerHTML = t.awake;
-
-
-// 语言文字
 document.getElementById("langText").innerHTML = t.language;
-
 }
 
+// =============================
+// 缩放逻辑
+// =============================
 function applyScale(){
-
 let screenW = window.innerWidth;
 let screenH = window.innerHeight;
 
-
-// 你的带鱼屏当前舒服尺寸基准
 let baseWidth = 2400;
 let baseHeight = 550;
 
-
-
-
-// 小屏自动缩小，大屏保持原尺寸
 let fitScale = Math.max(
     Math.min(
         screenW / baseWidth,
@@ -998,36 +943,14 @@ let fitScale = Math.max(
     0.5
 );
 
+let finalScale = fitScale * baseScale * clockScale;
 
-// 用户缩放
-let finalScale =
-    fitScale * baseScale * clockScale;
-
-
-clockWrapper.style.transform =
-`translate(-50%,-50%) scale(${finalScale})`;
-
-
-scaleValue.innerHTML =
-Math.round(clockScale*100)+"%";
-
-
+clockWrapper.style.transform = `translate(-50%,-50%) scale(${finalScale})`;
+scaleValue.innerHTML = Math.round(clockScale*100)+"%";
 saveSetting();
-
 }
 
-
-// 屏幕尺寸变化自动重新适配
-window.addEventListener(
-"resize",
-applyScale
-);
-
-
-
-
-
-
+window.addEventListener("resize", applyScale);
 
 // =============================
 // 更新时间
@@ -1042,87 +965,51 @@ suffix=hour>=12?"PM":"AM";
 hour=hour%12||12;
 }
 
-let str =
-String(hour).padStart(2,"0") +
-String(now.getMinutes()).padStart(2,"0");
-
-
+let str = String(hour).padStart(2,"0") + String(now.getMinutes()).padStart(2,"0");
 if(showSecond){
-
     str += String(now.getSeconds()).padStart(2,"0");
-
 }
 
-
-// 更新数字
 str.split("").forEach((v,i)=>{
-
     if(digits[i]){
         digits[i].set(v);
     }
-
 });
 
-
-
-// 秒显示控制
 if(showSecond){
-
     digits[4].el.style.display="block";
     digits[5].el.style.display="block";
-
-    document.querySelectorAll(".colon")[1]
-    .style.display="block";
-
-}
-else{
-
+    document.querySelectorAll(".colon")[1].style.display="block";
+}else{
     digits[4].el.style.display="none";
     digits[5].el.style.display="none";
-
-    document.querySelectorAll(".colon")[1]
-    .style.display="none";
-
+    document.querySelectorAll(".colon")[1].style.display="none";
 }
 
 ampm.style.display=is24Hour?"none":"block";
 ampm.innerHTML=suffix;
 
-// 日期
 let week=langText[lang].week[now.getDay()];
-
-
 if(lang==="zh"){
-
-dateBox.innerHTML=
-`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 星期${week}`;
-
+dateBox.innerHTML=`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 星期${week}`;
 }else{
-
-dateBox.innerHTML=
-`${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${week}`;
-
+dateBox.innerHTML=`${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${week}`;
+}
+dateBox.style.display=showDate?"block":"none";
 }
 
-
-dateBox.style.display=showDate?"block":"none";
-
-}   // ⭐⭐⭐这里补上，关闭 update()
-
-
 // =============================
-// 保存
+// 保存配置
 // =============================
 function saveSetting(){
-
 localStorage.setItem("flipClockSetting",
 JSON.stringify({
 showDate,
 is24Hour,
 showSecond,
-clockScale
+clockScale,
+language:lang
 }));
-
 }
 
 
@@ -1132,20 +1019,17 @@ clockScale
 dateSwitch.checked=showDate;
 hourSwitch.checked=is24Hour;
 secondSwitch.checked=showSecond;
-
+langSwitch.value = lang;
 
 changeLanguage();
-
 applyScale();
-
 update();
-
 setInterval(update,1000);
 
 
 
 // =============================
-// 控件
+// 缩放按钮事件
 // =============================
 zoomIn.onclick=()=>{
 clockScale=Math.min(maxScale,clockScale+0.1);
@@ -1157,29 +1041,21 @@ clockScale=Math.max(minScale,clockScale-0.1);
 applyScale();
 };
 
-dateSwitch.onchange=()=>{showDate=dateSwitch.checked;update();saveSetting();}
-hourSwitch.onchange=()=>{is24Hour=hourSwitch.checked;update();saveSetting();}
-secondSwitch.onchange=()=>{showSecond=secondSwitch.checked;update();saveSetting();}
-langSwitch.value = lang;
-
+dateSwitch.onchange=()=>{showDate=dateSwitch.checked;update();saveSetting()}
+hourSwitch.onchange=()=>{is24Hour=hourSwitch.checked;update();saveSetting()}
+secondSwitch.onchange=()=>{showSecond=secondSwitch.checked;update();saveSetting()}
 
 langSwitch.onchange=()=>{
-
 lang = langSwitch.value;
-
 localStorage.setItem("clockLang",lang);
-
 changeLanguage();
-
 saveSetting();
-
 };
 
 // =============================
 // 屏幕常亮
 // =============================
 let wakeLock=null;
-
 awakeSwitch.onchange=async function(){
 if(this.checked){
 try{
@@ -1196,49 +1072,23 @@ wakeLock=null;
 }
 };
 
-// 页面切后台/锁屏时系统会自动释放 Wake Lock，
-// 重新回到前台时如果开关仍然是开启状态，自动重新申请
-document.addEventListener("visibilitychange", async ()=>{
-if(document.visibilityState==="visible" && awakeSwitch.checked && wakeLock===null){
-try{
-wakeLock=await navigator.wakeLock.request("screen");
-}catch(e){
-// 静默失败，不打断用户
-}
-}
-});
-
 
 // =============================
-// 设置面板（不乱关）
+// 设置面板
 // =============================
 settingsBtn.onclick=e=>{
 e.stopPropagation();
 settingsPanel.classList.toggle("show");
 };
 
-settingsPanel.addEventListener(
-"click",
-function(e){
+settingsPanel.addEventListener("click",function(e){
 e.stopPropagation();
-}
-);
+});
 
-
-document.addEventListener(
-"click",
-function(e){
-
-if(
-!settingsPanel.contains(e.target)
-&&
-e.target!==settingsBtn
-){
-
+document.addEventListener("click",function(e){
+if(!settingsPanel.contains(e.target) && e.target!==settingsBtn){
 settingsPanel.classList.remove("show");
-
 }
-
 });
 
 
@@ -1255,36 +1105,19 @@ document.exitFullscreen();
 
 
 // =============================
-// 鼠标移动显示按钮
+// 鼠标悬浮显示按钮
 // =============================
-
 let hideTimer;
-
 function showButtons(){
-
 floatButtons.classList.add("show");
-
 clearTimeout(hideTimer);
-
 hideTimer=setTimeout(()=>{
-
 floatButtons.classList.remove("show");
-
 },3000);
-
 }
 
-
-document.addEventListener(
-"mousemove",
-showButtons
-);
-
-
-document.addEventListener(
-"touchstart",
-showButtons
-);
+document.addEventListener("mousemove",showButtons);
+document.addEventListener("touchstart",showButtons);
 
 </script>
 
