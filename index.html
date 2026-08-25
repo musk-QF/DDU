@@ -21006,7 +21006,13 @@ body.dark .scroll-nav button {
         pickIcon.textContent = (site.name || "站").slice(0, 1);
         pickIcon.style.background = color.bg;
         pickIcon.style.color = color.fg;
-        pickIcon.onclick = () => window.open(site.url, "_blank", "noreferrer");
+        const openSite = () => window.open(site.url, "_blank", "noreferrer");
+        pickIcon.onclick = openSite;
+        pickName.onclick = openSite;
+        pickDesc.onclick = openSite;
+        pickIcon.style.cursor = "pointer";
+        pickName.style.cursor = "pointer";
+        pickDesc.style.cursor = "pointer";
         pickCard.classList.remove("pop");
         void pickCard.offsetWidth;
         pickCard.classList.add("pop");
