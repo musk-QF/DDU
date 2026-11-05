@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
 
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<title>Flip Clock V10 Final</title>
+<title>Flip Clock</title>
 
 
 <style>
@@ -57,6 +58,8 @@ top:50%;
 
 margin:0;
 
+
+
 transform-origin:center center;
 
 display:flex;
@@ -67,7 +70,8 @@ align-items:center;
 
 justify-content:center;
 
-gap:5px;
+gap:5px;   /* ⭐ 时钟和日期间隔100px */
+
 
 }
 
@@ -85,7 +89,11 @@ gap:10px;
 
 position:relative;
 
+
+
 transform-origin:center center;
+
+
 
 }
 
@@ -344,7 +352,7 @@ flipTop .4s cubic-bezier(.55,.05,.25,1.15) forwards;
 
 animation:
 
-flipBottom .35s .35s linear forwards;
+flipBottom .35s .35s linear both;
 
 }
 
@@ -478,6 +486,684 @@ transition:.25s;
 
 
 
+/* ========= 定时器 / 闹钟 / 番茄钟 ========= */
+
+.mode-wrapper{
+position:absolute;
+left:50%;
+top:50%;
+transform:translate(-50%,-50%);
+display:none;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+gap:22px;
+color:#fff;
+}
+
+.mode-wrapper.show{
+display:flex;
+}
+
+.flip-display{
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.phase-label{
+font-size:20px;
+letter-spacing:6px;
+color:#aaa;
+}
+
+.phase-label.work{color:#fff;}
+.phase-label.rest{color:#888;}
+
+.pomodoro-count{
+font-size:13px;
+color:#888;
+letter-spacing:2px;
+}
+
+.control-row{
+display:flex;
+align-items:center;
+gap:12px;
+flex-wrap:wrap;
+justify-content:center;
+}
+
+.ctrl-btn{
+padding:10px 24px;
+font-size:14px;
+letter-spacing:2px;
+background:transparent;
+color:#bbb;
+border:1px solid #444;
+border-radius:20px;
+cursor:pointer;
+transition:.2s;
+}
+
+.ctrl-btn:hover{
+color:#fff;
+border-color:#fff;
+background:rgba(255,255,255,.12);
+}
+
+/* 闹钟面板 */
+
+.alarm-panel{
+width:min(400px,94vw);
+display:flex;
+flex-direction:column;
+gap:16px;
+align-items:stretch;
+}
+
+.alarm-add-box{
+background:#141414;
+border:1px solid #333;
+border-radius:10px;
+padding:14px;
+display:flex;
+flex-direction:column;
+gap:12px;
+}
+
+.weekday-picker{
+display:flex;
+gap:6px;
+justify-content:center;
+}
+
+.weekday-btn{
+width:34px;
+height:34px;
+border-radius:50%;
+border:1px solid #444;
+background:transparent;
+color:#888;
+font-size:12px;
+cursor:pointer;
+transition:.2s;
+}
+
+.weekday-btn:hover{
+color:#fff;
+border-color:#fff;
+background:rgba(255,255,255,.12);
+}
+
+.weekday-btn.active{
+border-color:#fff;
+color:#fff;
+}
+
+.alarm-hint{
+font-size:11px;
+color:#777;
+text-align:center;
+letter-spacing:1px;
+}
+
+.alarm-list{
+display:flex;
+flex-direction:column;
+gap:10px;
+max-height:38vh;
+overflow-y:auto;
+}
+
+
+.alarm-item.off{opacity:.4;}
+
+
+
+#alarmWrapper{
+max-height:96vh;
+overflow-y:auto;
+scrollbar-width:none;
+}
+
+#alarmWrapper::-webkit-scrollbar{display:none;}
+
+.next-box{
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:14px;
+zoom:1.25;
+margin-bottom:8px;
+}
+
+.next-label{
+font-size:11px;
+color:#777;
+letter-spacing:3px;
+text-transform:uppercase;
+}
+
+.next-sub{
+font-size:13px;
+color:#aaa;
+letter-spacing:1px;
+}
+
+.next-box.none .flip-display{opacity:.3;}
+
+.add-top{
+display:flex;
+align-items:center;
+justify-content:center;
+gap:16px;
+}
+
+.add-side{
+display:flex;
+flex-direction:column;
+gap:12px;
+align-items:stretch;
+}
+
+.add-side input[type="text"]{
+background:#1c1c1c;
+border:1px solid #555;
+color:#fff;
+border-radius:6px;
+padding:8px 10px;
+font-size:14px;
+width:150px;
+}
+
+.wheel-wrap{
+position:relative;
+display:flex;
+align-items:center;
+gap:2px;
+background:#0d0d0d;
+border:0.5px solid #222;
+border-radius:10px;
+padding:0 10px;
+}
+
+.wheel{
+height:170px;
+width:60px;
+padding:68px 0;
+overflow-y:scroll;
+scroll-snap-type:y mandatory;
+scrollbar-width:none;
+cursor:pointer;
+-webkit-mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent);
+mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent);
+}
+
+.wheel::-webkit-scrollbar{display:none;}
+
+.wheel div{
+height:34px;
+line-height:34px;
+text-align:center;
+font-size:20px;
+color:#555;
+scroll-snap-align:center;
+user-select:none;
+font-variant-numeric:tabular-nums;
+}
+
+.wheel div.sel{
+color:#fff;
+font-weight:700;
+font-size:25px;
+}
+
+.wheel-colon{
+color:#777;
+font-size:22px;
+}
+
+.wheel-band{
+position:absolute;
+left:8px;
+right:8px;
+top:68px;
+height:34px;
+border-top:1px solid #3a3a3a;
+border-bottom:1px solid #3a3a3a;
+pointer-events:none;
+}
+
+/* ===== 纯黑白 ===== */
+
+html{color-scheme:dark;}
+
+::selection{background:#fff;color:#000;}
+
+input[type="checkbox"]{accent-color:#fff;}
+
+#langSwitch{
+background:#1c1c1c;
+color:#fff;
+border:1px solid #555;
+border-radius:6px;
+padding:4px 8px;
+}
+
+:focus-visible{
+outline:1px solid #fff;
+outline-offset:2px;
+}
+
+.float-buttons button{
+display:flex;
+align-items:center;
+justify-content:center;
+padding:0;
+}
+
+.float-buttons button svg{
+width:22px;
+height:22px;
+fill:none;
+stroke:currentColor;
+stroke-width:1.8;
+stroke-linecap:round;
+stroke-linejoin:round;
+}
+
+/* ===== 小号滚轮（定时器 / 番茄钟） ===== */
+
+.wheel-wrap.sm{
+gap:8px;
+padding:10px 14px;
+}
+
+.wheel-wrap.disabled{
+opacity:.4;
+pointer-events:none;
+}
+
+.wheel-box{position:relative;}
+.wheel-box.sm{--h:28px;}
+
+.wheel.sm{
+height:calc(var(--h)*5);
+width:54px;
+padding:calc(var(--h)*2) 0;
+}
+
+.wheel.sm div{
+height:var(--h);
+line-height:var(--h);
+font-size:17px;
+}
+
+.wheel.sm div.sel{font-size:21px;}
+
+.wheel-band.sm{
+left:0;
+right:0;
+top:calc(var(--h)*2);
+height:var(--h);
+}
+
+.wheel-col{
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:4px;
+}
+
+.wheel-cap{
+font-size:12px;
+color:#aaa;
+letter-spacing:2px;
+}
+
+.wheel-unit{
+font-size:13px;
+color:#aaa;
+letter-spacing:2px;
+}
+
+.wheel-foot{
+font-size:12px;
+color:#777;
+letter-spacing:2px;
+}
+
+/* ===== 鼠标移动时显示，不动后自动隐藏 ===== */
+
+.idle-hide{
+opacity:0;
+pointer-events:none;
+transition:opacity .3s;
+}
+
+body.ui-active .idle-hide{
+opacity:1;
+pointer-events:auto;
+}
+
+body.ui-active .idle-hide.disabled{
+opacity:.4;
+pointer-events:none;
+}
+
+/* ===== 番茄钟：轮次圆点 ===== */
+
+.pomo-dots{
+display:flex;
+align-items:center;
+gap:14px;
+height:12px;
+}
+
+.pomo-dot{
+width:10px;
+height:10px;
+border-radius:50%;
+background:#333;
+transition:background .3s;
+}
+
+.pomo-dot.done{background:#fff;}
+.pomo-dot.cur{background:#aaa;}
+
+.pomo-dots.running .pomo-dot.cur{
+animation:dotBlink 1s ease-in-out infinite;
+}
+
+@keyframes dotBlink{
+0%,100%{background:#fff;opacity:1;}
+50%{background:#fff;opacity:.15;}
+}
+
+/* ===== 番茄钟：设置区与说明 ===== */
+
+.pomo-settings{
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:8px;
+}
+
+.pomo-note{
+max-width:440px;
+text-align:center;
+}
+
+.pomo-note-title{
+font-size:15px;
+color:#ddd;
+letter-spacing:2px;
+margin-bottom:6px;
+}
+
+.pomo-note-body{
+font-size:12px;
+line-height:1.7;
+color:#888;
+letter-spacing:1px;
+}
+
+#addAlarmBtn{
+padding:6px 16px;
+font-size:12px;
+}
+
+.mode-wrapper{width:max-content;}
+
+.ctrl-btn:disabled{
+opacity:.35;
+pointer-events:none;
+}
+
+.lap-box{
+width:300px;
+display:none;
+}
+
+.lap-box.has{display:block;}
+
+.lap-row{
+display:grid;
+grid-template-columns:44px 1fr 1fr;
+gap:8px;
+padding:6px 10px;
+font-size:13px;
+color:#ddd;
+text-align:center;
+font-variant-numeric:tabular-nums;
+border-bottom:0.5px solid #1c1c1c;
+}
+
+.lap-row span:first-child{color:#777;}
+.lap-row:not(.lap-head) span:nth-child(2){color:#fff;}
+.lap-row:not(.lap-head) span:nth-child(3){color:#666;}
+
+.lap-head{
+font-size:11px;
+letter-spacing:2px;
+color:#777;
+border-bottom:0.5px solid #333;
+}
+
+.lap-list{
+max-height:140px;
+overflow-y:auto;
+scrollbar-width:none;
+}
+
+.lap-list::-webkit-scrollbar{display:none;}
+.mode-wrapper .flip{flex-shrink:0;}
+
+.alarm-head{
+display:flex;
+align-items:center;
+justify-content:space-between;
+}
+
+.alarm-title{
+font-size:12px;
+color:#777;
+letter-spacing:3px;
+text-transform:uppercase;
+}
+
+#alarmAddToggle{
+padding:6px 14px;
+font-size:12px;
+}
+
+#alarmAddToggle::before{
+content:"+ ";
+}
+
+.alarm-add-box{
+display:none;
+}
+
+.alarm-add-box.open{
+display:flex;
+}
+
+.alarm-item{
+background:#0d0d0d;
+border:0.5px solid #222;
+border-radius:10px;
+padding:12px;
+display:flex;
+align-items:center;
+gap:12px;
+}
+
+.alarm-item.off{opacity:.45;}
+
+.alarm-cards{
+display:flex;
+align-items:center;
+gap:4px;
+}
+
+.fc{
+width:28px;
+height:40px;
+background:linear-gradient(#181818,#090909);
+border-radius:5px;
+position:relative;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:27px;
+font-weight:900;
+color:#fff;
+}
+
+.fc::after{
+content:"";
+position:absolute;
+left:0;
+right:0;
+top:50%;
+height:1.5px;
+background:#000;
+}
+
+.fc-colon{
+color:#555;
+font-size:20px;
+margin:0 2px;
+}
+
+.alarm-info{
+flex:1;
+min-width:0;
+padding-left:4px;
+}
+
+.alarm-name{
+font-size:12px;
+color:#aaa;
+margin-bottom:4px;
+overflow:hidden;
+text-overflow:ellipsis;
+white-space:nowrap;
+}
+
+.alarm-days{
+display:flex;
+gap:7px;
+font-size:11px;
+color:#555;
+}
+
+.alarm-days .on{color:#fff;}
+
+.alarm-empty{
+text-align:center;
+font-size:12px;
+color:#666;
+letter-spacing:1px;
+padding:18px 0;
+}
+
+.alarm-actions{
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.alarm-del{
+background:none;
+border:none;
+color:#888;
+font-size:18px;
+cursor:pointer;
+transition:.2s;
+}
+
+.alarm-del:hover{
+color:#fff;
+}
+
+.switch{
+position:relative;
+width:40px;
+height:22px;
+flex-shrink:0;
+}
+
+.switch input{
+opacity:0;
+width:0;
+height:0;
+}
+
+.slider{
+position:absolute;
+cursor:pointer;
+inset:0;
+background:#444;
+border-radius:22px;
+transition:.2s;
+}
+
+.slider:before{
+content:"";
+position:absolute;
+width:16px;
+height:16px;
+left:3px;
+top:3px;
+background:#fff;
+border-radius:50%;
+transition:.2s;
+}
+
+.switch input:checked + .slider{background:#888;}
+.switch input:checked + .slider:before{transform:translateX(18px);}
+
+/* 到时提醒弹层 */
+
+.ring-overlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.88);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:1000;
+}
+
+.ring-overlay.show{display:flex;}
+
+.ring-box{
+text-align:center;
+color:#fff;
+}
+
+.ring-title{
+font-size:34px;
+letter-spacing:4px;
+margin-bottom:10px;
+animation:pulse 1s infinite;
+}
+
+.ring-sub{
+font-size:15px;
+color:#aaa;
+margin-bottom:30px;
+letter-spacing:2px;
+}
+
+@keyframes pulse{
+0%,100%{opacity:1;}
+50%{opacity:.4;}
+}
+
 /* 顶部按钮 */
 
 .float-buttons{
@@ -527,16 +1213,26 @@ height:45px;
 
 border-radius:50%;
 
-border:1px solid #555;
+border:none;
 
-background:#222;
+background:transparent;
 
-color:white;
+color:#777;
 
 font-size:22px;
 
 cursor:pointer;
 
+transition:color .2s;
+
+}
+
+.float-buttons button:hover{
+color:#fff;
+}
+
+.float-buttons button.active{
+color:#fff;
 }
 
 
@@ -635,6 +1331,468 @@ cursor:pointer;
 
 }
 
+
+
+
+
+
+/* 手机竖屏 */
+
+
+
+
+
+
+
+
+
+
+/* ===================================================
+   新增：防烧屏、亮度、提示、预设、窄屏适配、对比度
+   =================================================== */
+
+.clock-wrapper{width:max-content;}
+
+/* 防烧屏位移：用独立的 translate 属性，不影响缩放用的 transform */
+.clock-wrapper,
+.mode-wrapper{
+translate:var(--sx,0px) var(--sy,0px);
+transition:translate 4s ease-in-out;
+}
+
+#dimLayer{
+position:fixed;
+inset:0;
+background:#000;
+opacity:0;
+pointer-events:none;
+z-index:500;
+transition:opacity 2s linear;
+}
+
+#toastBox{
+position:fixed;
+left:50%;
+bottom:40px;
+transform:translateX(-50%);
+max-width:90vw;
+padding:10px 18px;
+background:#1c1c1c;
+border:1px solid #444;
+border-radius:20px;
+color:#ddd;
+font-size:13px;
+text-align:center;
+opacity:0;
+pointer-events:none;
+transition:opacity .3s;
+z-index:1100;
+}
+
+#toastBox.show{opacity:1;}
+
+#settingsPanel{
+max-height:calc(100vh - 100px);
+overflow-y:auto;
+scrollbar-width:thin;
+}
+
+#settingsPanel input[type="range"]{
+width:120px;
+accent-color:#fff;
+color:#999;
+border-color:#999;
+outline-color:#fff;
+}
+
+#settingsPanel select{
+background:#1c1c1c;
+color:#fff;
+border:1px solid #555;
+border-radius:6px;
+padding:4px 8px;
+}
+
+.chip-row{
+display:flex;
+gap:8px;
+justify-content:center;
+flex-wrap:wrap;
+}
+
+.chip{
+padding:5px 12px;
+font-size:12px;
+letter-spacing:1px;
+}
+
+.ring-actions{
+display:flex;
+gap:12px;
+justify-content:center;
+flex-wrap:wrap;
+}
+
+.ring-box .ctrl-btn{
+padding:12px 30px;
+font-size:16px;
+}
+
+.alarm-edit{
+background:none;
+border:none;
+color:#888;
+cursor:pointer;
+padding:0;
+display:flex;
+align-items:center;
+transition:.2s;
+}
+
+.alarm-edit:hover{color:#fff;}
+
+.alarm-edit svg{
+width:16px;
+height:16px;
+fill:none;
+stroke:currentColor;
+stroke-width:1.8;
+stroke-linecap:round;
+stroke-linejoin:round;
+}
+
+.alarm-item.editing{border-color:#fff;}
+
+.alarm-note{
+font-size:12px;
+color:#8a8a8a;
+text-align:center;
+letter-spacing:1px;
+}
+
+/* ---- 对比度：小字号的暗灰文字整体提亮 ---- */
+.float-buttons button{color:#8a8a8a;}
+.float-buttons button:hover,
+.float-buttons button.active{color:#fff;}
+
+.wheel div{color:#6e6e6e;}
+.wheel div.sel{color:#fff;}
+
+.weekday-btn{color:#8a8a8a;}
+.weekday-btn.active{color:#fff;}
+
+.alarm-days{color:#7a7a7a;font-size:12px;gap:5px;}
+
+.alarm-item{gap:10px;}
+.alarm-info{min-width:116px;}
+.alarm-actions{gap:8px;}
+.alarm-days .on{color:#fff;}
+
+.alarm-hint,
+.alarm-title,
+.next-label,
+.lap-head,
+.wheel-foot{
+color:#8a8a8a;
+}
+
+.alarm-hint{font-size:12px;}
+.lap-head{font-size:12px;}
+.wheel-foot{font-size:13px;}
+
+.lap-row span:first-child{color:#8a8a8a;}
+.lap-row:not(.lap-head) span:nth-child(3){color:#8a8a8a;}
+
+.pomo-note-body{color:#9a9a9a;font-size:13px;}
+
+.wheel-cap,
+.wheel-unit{
+color:#b0b0b0;
+font-size:13px;
+}
+
+/* ---- 窄屏（手机竖屏）适配 ---- */
+@media (max-width:520px){
+.float-buttons{right:6px;top:6px;gap:0;}
+.float-buttons button{width:40px;height:40px;}
+#settingsPanel{left:8px;right:8px;width:auto;top:56px;}
+.add-top{flex-wrap:wrap;}
+.alarm-item{flex-wrap:wrap;}
+.alarm-info{order:3;flex:1 1 100%;padding-left:0;}
+.alarm-actions{margin-left:auto;}
+}
+
+
+/* ===================================================
+   世界时钟
+   =================================================== */
+
+#alarmWrapper,
+#worldWrapper{
+max-height:96vh;
+overflow-y:auto;
+scrollbar-width:none;
+}
+
+#worldWrapper::-webkit-scrollbar{display:none;}
+
+.world-panel{
+width:min(480px,94vw);
+display:flex;
+flex-direction:column;
+gap:14px;
+}
+
+.world-controls{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:10px;
+}
+
+.seg{
+display:inline-flex;
+border:1px solid #444;
+border-radius:16px;
+overflow:hidden;
+}
+
+.seg-btn{
+background:transparent;
+color:#8a8a8a;
+border:none;
+padding:6px 14px;
+font-size:12px;
+letter-spacing:1px;
+cursor:pointer;
+transition:.2s;
+}
+
+.seg-btn:hover{color:#fff;}
+
+.seg-btn.active{
+color:#fff;
+background:rgba(255,255,255,.14);
+}
+
+#worldAddBtn{
+padding:6px 14px;
+font-size:12px;
+}
+
+#worldAddBtn::before{content:"+ ";}
+
+.world-plan{
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:8px;
+}
+
+.world-list{
+display:flex;
+flex-direction:column;
+gap:8px;
+max-height:42vh;
+overflow-y:auto;
+scrollbar-width:none;
+}
+
+.world-list::-webkit-scrollbar{display:none;}
+
+.world-row{
+display:flex;
+align-items:center;
+gap:10px;
+background:#0d0d0d;
+border:0.5px solid #222;
+border-radius:10px;
+padding:10px 12px;
+}
+
+.world-ico{
+display:flex;
+flex-shrink:0;
+}
+
+.world-ico svg{
+width:18px;
+height:18px;
+fill:none;
+stroke:#bbb;
+stroke-width:1.8;
+stroke-linecap:round;
+stroke-linejoin:round;
+}
+
+.world-name{
+flex:1;
+min-width:0;
+}
+
+.wn{
+font-size:15px;
+color:#fff;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+}
+
+.ws{
+font-size:12px;
+color:#8a8a8a;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+}
+
+.world-time{
+display:flex;
+align-items:center;
+gap:4px;
+}
+
+.world-row .alarm-cards{gap:3px;}
+
+.world-row .fc{
+width:22px;
+height:32px;
+font-size:21px;
+border-radius:4px;
+}
+
+.world-row .fc-colon{
+font-size:16px;
+margin:0 1px;
+}
+
+.ampm-s{
+font-size:11px;
+color:#8a8a8a;
+min-width:20px;
+}
+
+.world-badge{
+font-size:11px;
+color:#8a8a8a;
+border:1px solid #333;
+border-radius:10px;
+padding:2px 8px;
+min-width:48px;
+text-align:center;
+white-space:nowrap;
+}
+
+.world-badge.off{
+color:#fff;
+border-color:#888;
+}
+
+/* 城市选择面板 */
+
+.city-overlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.88);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:950;
+}
+
+.city-overlay.show{display:flex;}
+
+.city-box{
+width:min(540px,94vw);
+max-height:84vh;
+display:flex;
+flex-direction:column;
+gap:12px;
+background:#111;
+border:1px solid #333;
+border-radius:12px;
+padding:16px;
+}
+
+.city-head{
+display:flex;
+justify-content:space-between;
+align-items:center;
+color:#fff;
+font-size:16px;
+letter-spacing:2px;
+}
+
+#citySearch{
+background:#1c1c1c;
+border:1px solid #555;
+color:#fff;
+border-radius:8px;
+padding:8px 12px;
+font-size:14px;
+}
+
+.city-groups{
+overflow-y:auto;
+display:flex;
+flex-direction:column;
+gap:14px;
+scrollbar-width:thin;
+}
+
+.city-region{
+font-size:12px;
+color:#8a8a8a;
+letter-spacing:2px;
+margin-bottom:6px;
+}
+
+.city-chips{
+display:flex;
+flex-wrap:wrap;
+gap:8px;
+}
+
+.city-chip.on{
+color:#fff;
+border-color:#fff;
+}
+
+@media (max-width:520px){
+.world-controls{flex-wrap:wrap;}
+.world-row .fc{width:20px;height:30px;font-size:19px;}
+.world-row{gap:8px;padding:10px;}
+}
+
+/* 昼夜分布图 */
+.world-map-wrap{
+background:#0b0b0b;
+border:0.5px solid #222;
+border-radius:12px;
+padding:10px;
+display:flex;
+justify-content:center;
+}
+
+#worldMap{display:block;}
+
+/* 窗口很矮时先把地图让出来，保证城市列表放得下 */
+@media (max-height:700px){
+.world-map-wrap{display:none;}
+}
+
+/* 内容超高需要滚动时，不能用居中对齐，否则顶部会被挤出屏幕且滚不到 */
+#alarmWrapper,
+#worldWrapper{
+justify-content:flex-start;
+}
+
+/* 世界时钟的小卡片：中缝更细、更淡，不要把数字拦腰切开 */
+.world-row .fc::after{
+height:1px;
+background:rgba(0,0,0,.55);
+}
+
 </style>
 
 
@@ -650,12 +1808,25 @@ cursor:pointer;
 <div class="float-buttons" id="floatButtons">
 
 
-<button id="fullscreenBtn">
+<button id="modeClockBtn" data-i18n-title="mClock"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button>
+
+<button id="modeWorldBtn" data-i18n-title="mWorld"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></button>
+
+<button id="modeTimerBtn" data-i18n-title="mTimer"><svg viewBox="0 0 24 24"><path d="M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/></svg></button>
+
+<button id="modeStopwatchBtn" data-i18n-title="mStopwatch"><svg viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9.5M9.5 2.8h5M12 2.8V6"/></svg></button>
+
+<button id="modeAlarmBtn" data-i18n-title="mAlarm"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="7.5"/><path d="M12 9.5V13l2.5 1.5M4 5.5l3-2.5M20 5.5l-3-2.5"/></svg></button>
+
+<button id="modePomodoroBtn" data-i18n-title="mPomodoro"><svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="7.5"/><path d="M12 6.5V3.5M12 6.5c-1-1.6-2.6-1.9-4-1.2M12 6.5c1-1.6 2.6-1.9 4-1.2"/></svg></button>
+
+
+<button id="fullscreenBtn" data-i18n-title="fullscreen">
 ⛶
 </button>
 
 
-<button id="settingsBtn">
+<button id="settingsBtn" data-i18n-title="setting">
 ⚙
 </button>
 
@@ -744,6 +1915,40 @@ cursor:pointer;
 
 <div class="setting-row">
 
+<span id="notifyText">
+桌面通知
+</span>
+
+<input type="checkbox" id="notifySwitch">
+
+</div>
+
+
+<div class="setting-row">
+<span data-i18n="sound">提示音</span>
+<select id="soundSelect">
+<option value="beep" data-i18n="soundBeep">蜂鸣</option>
+<option value="bell" data-i18n="soundBell">铃声</option>
+<option value="soft" data-i18n="soundSoft">轻柔</option>
+</select>
+</div>
+
+<div class="setting-row">
+<span data-i18n="volume">音量</span>
+<input type="range" id="volumeRange" min="0" max="100" value="60">
+</div>
+
+<div class="setting-row">
+<span data-i18n="brightness">亮度</span>
+<input type="range" id="brightRange" min="30" max="100" value="100">
+</div>
+
+<div class="setting-row">
+<span data-i18n="burn">防烧屏</span>
+<input type="checkbox" id="burnSwitch">
+</div>
+
+<div class="setting-row">
 <span id="langText">
 language
 </span>
@@ -812,11 +2017,216 @@ language
 
 
 
+<!-- 世界时钟 -->
+<div class="mode-wrapper" id="worldWrapper">
+
+<div class="next-box" id="worldTop">
+<div class="next-label" id="worldTopLabel"></div>
+<div class="flip-display" id="worldDisplay"></div>
+<div class="next-sub" id="worldTopSub"></div>
+</div>
+
+<div class="world-panel">
+
+<div class="world-controls idle-hide">
+<div class="seg">
+<button type="button" class="seg-btn active" id="worldLiveBtn" data-i18n="worldLive" aria-pressed="true">实时</button>
+<button type="button" class="seg-btn" id="worldPlanBtn" data-i18n="worldPlan" aria-pressed="false">会议规划</button>
+</div>
+<button type="button" class="ctrl-btn" id="worldAddBtn" data-i18n="addCity">添加城市</button>
+</div>
+
+<div class="world-plan idle-hide" id="worldPlanBox" style="display:none">
+<div class="wheel-wrap sm">
+<div class="wheel-box sm"><div class="wheel sm" id="wheelWH"></div><div class="wheel-band sm"></div></div>
+<span class="wheel-colon">:</span>
+<div class="wheel-box sm"><div class="wheel sm" id="wheelWM"></div><div class="wheel-band sm"></div></div>
+</div>
+<div class="alarm-hint" data-i18n="planHint">选一个你所在时区的时间，下面显示各城市的对应时间</div>
+</div>
+
+<div class="world-map-wrap"><canvas id="worldMap" role="img" data-aria-key="mapLabel"></canvas></div>
+
+<div class="world-list" id="worldList"></div>
+
+</div>
+
+</div>
+
+
+<!-- 定时器 -->
+<div class="mode-wrapper" id="timerWrapper">
+
+<div class="flip-display" id="timerDisplay"></div>
+
+<div class="wheel-wrap sm cz idle-hide" id="timerWheels">
+<div class="wheel-box sm"><div class="wheel sm" id="wheelTD"></div><div class="wheel-band sm"></div></div>
+<span class="wheel-unit" data-i18n="unitDay">天</span>
+<div class="wheel-box sm"><div class="wheel sm" id="wheelTH"></div><div class="wheel-band sm"></div></div>
+<span class="wheel-unit" data-i18n="unitHour">时</span>
+<div class="wheel-box sm"><div class="wheel sm" id="wheelTM"></div><div class="wheel-band sm"></div></div>
+<span class="wheel-unit" data-i18n="min">分</span>
+<div class="wheel-box sm"><div class="wheel sm" id="wheelTS"></div><div class="wheel-band sm"></div></div>
+<span class="wheel-unit" data-i18n="sec">秒</span>
+</div>
+
+<div class="chip-row cz idle-hide" id="timerPresets"></div>
+
+<div class="control-row cz">
+<button class="ctrl-btn" id="timerStartBtn" data-i18n="start">开始</button>
+<button class="ctrl-btn" id="timerPauseBtn" data-i18n="pause">暂停</button>
+<button class="ctrl-btn" id="timerResetBtn" data-i18n="reset">重置</button>
+</div>
+
+</div>
+
+
+<!-- 秒表 -->
+<div class="mode-wrapper" id="stopwatchWrapper">
+
+<div class="flip-display" id="stopwatchDisplay"></div>
+
+<div class="control-row cz">
+<button class="ctrl-btn" id="swStartBtn" data-i18n="start">开始</button>
+<button class="ctrl-btn" id="swPauseBtn" data-i18n="pause">暂停</button>
+<button class="ctrl-btn" id="swLapBtn" data-i18n="lap" disabled>计次</button>
+<button class="ctrl-btn" id="swResetBtn" data-i18n="reset">重置</button>
+</div>
+
+<div class="lap-box cz" id="swLapBox">
+<div class="lap-row lap-head"><span data-i18n="lapNo">计次</span><span data-i18n="lapSplit">单次</span><span data-i18n="lapTotal">累计</span></div>
+<div class="lap-list" id="swLapList"></div>
+</div>
+
+</div>
+
+
+<!-- 闹钟 -->
+<div class="mode-wrapper" id="alarmWrapper">
+
+<div class="next-box none" id="nextBox">
+<div class="next-label" data-i18n="nextLabel">下一个闹钟</div>
+<div class="flip-display" id="nextAlarmDisplay"></div>
+<div class="next-sub" id="nextAlarmSub"></div>
+</div>
+
+<div class="alarm-panel idle-hide">
+
+<div class="alarm-head">
+<span class="alarm-title" data-i18n="alarmTitle">闹钟</span>
+<button class="ctrl-btn" id="alarmAddToggle" data-i18n="addAlarm">添加闹钟</button>
+</div>
+
+<div class="alarm-add-box" id="alarmAddBox">
+
+<input type="hidden" id="newAlarmTime" value="07:00">
+
+<div class="add-top">
+
+<div class="wheel-wrap">
+<div class="wheel" id="wheelH"></div>
+<span class="wheel-colon">:</span>
+<div class="wheel" id="wheelM"></div>
+<div class="wheel-band"></div>
+</div>
+
+<div class="add-side">
+<input type="text" id="newAlarmLabel" placeholder="备注（可选）" maxlength="20" data-i18n-ph="labelPh">
+<button class="ctrl-btn" id="addAlarmBtn" data-i18n="confirmAdd">添加</button>
+</div>
+
+</div>
+
+<div class="weekday-picker" id="weekdayPicker"></div>
+
+<div class="alarm-hint" data-i18n="alarmHint">不选星期 = 仅响一次</div>
+
+</div>
+
+<div class="alarm-list" id="alarmList"></div>
+
+<div class="alarm-note" data-i18n="alarmNote">闹钟需要保持此页面打开，且电脑不休眠才会响</div>
+
+</div>
+
+</div>
+
+
+<!-- 番茄钟 -->
+<div class="mode-wrapper" id="pomodoroWrapper">
+
+<div class="phase-label work" id="pomodoroPhase">工作时间</div>
+
+<div class="flip-display" id="pomodoroDisplay"></div>
+
+<div class="pomo-dots" id="pomodoroDots"></div>
+
+<div class="pomodoro-count" id="pomodoroCount">已完成 0 个番茄</div>
+
+<div class="control-row cz">
+<button class="ctrl-btn" id="pomodoroStartBtn" data-i18n="start">开始</button>
+<button class="ctrl-btn" id="pomodoroPauseBtn" data-i18n="pause">暂停</button>
+<button class="ctrl-btn" id="pomodoroSkipBtn" data-i18n="skip" disabled>跳过</button>
+<button class="ctrl-btn" id="pomodoroResetBtn" data-i18n="reset">重置</button>
+</div>
+
+<div class="pomo-settings cz idle-hide" id="pomodoroSettings">
+
+<div class="wheel-wrap sm" id="pomodoroWheels">
+<div class="wheel-col"><span class="wheel-cap" data-i18n="work">工作</span><div class="wheel-box sm"><div class="wheel sm" id="wheelPW"></div><div class="wheel-band sm"></div></div></div>
+<div class="wheel-col"><span class="wheel-cap" data-i18n="shortBreak">短休</span><div class="wheel-box sm"><div class="wheel sm" id="wheelPB"></div><div class="wheel-band sm"></div></div></div>
+<div class="wheel-col"><span class="wheel-cap" data-i18n="longBreak">长休</span><div class="wheel-box sm"><div class="wheel sm" id="wheelPL"></div><div class="wheel-band sm"></div></div></div>
+<div class="wheel-col"><span class="wheel-cap" data-i18n="rounds">轮次</span><div class="wheel-box sm"><div class="wheel sm" id="wheelPR"></div><div class="wheel-band sm"></div></div></div>
+</div>
+
+<div class="wheel-foot" data-i18n="minutes">时长单位：分钟</div>
+
+</div>
+
+<div class="pomo-note cz idle-hide">
+<div class="pomo-note-title" data-i18n="noteTitle">番茄工作法</div>
+<div class="pomo-note-body" data-i18n="noteBody">默认专注 25 分钟、休息 5 分钟，每完成 4 轮后换成更长的休息。工作、短休、长休和轮次都可以用滚轮调整。</div>
+</div>
+
+</div>
+
+
+<!-- 城市选择 -->
+<div class="city-overlay" id="cityOverlay" role="dialog" aria-modal="true" aria-labelledby="cityTitle">
+<div class="city-box">
+<div class="city-head">
+<span id="cityTitle" data-i18n="cityTitle">选择城市</span>
+<button type="button" class="alarm-del" id="cityClose" data-i18n-title="closeLabel">✕</button>
+</div>
+<input type="search" id="citySearch" data-i18n-ph="searchCity" placeholder="搜索城市" autocomplete="off">
+<div class="city-groups" id="cityGroups"></div>
+</div>
+</div>
+
+
+<!-- 到时提醒弹层 -->
+<div class="ring-overlay" id="ringOverlay">
+<div class="ring-box">
+<div class="ring-title" id="ringTitle">时间到</div>
+<div class="ring-sub" id="ringSub"></div>
+<div class="ring-actions">
+<button class="ctrl-btn" id="ringStopBtn" data-i18n="stop">停止</button>
+<button class="ctrl-btn" id="ringSnoozeBtn" data-i18n="snooze" style="display:none">稍后提醒 5 分钟</button>
+</div>
+</div>
+</div>
+
+
+<div id="dimLayer"></div>
+<div id="toastBox" role="status" aria-live="polite"></div>
+
 <script>
 
 class FlipDigit{
 constructor(v){
-this.value=v;
+this.value=v;      // 画面上已经显示的值
+this.target=v;     // 最新要翻到的值
+this.timers=[];
 this.el=document.createElement("div");
 this.el.className="flip";
 this.el.innerHTML=`
@@ -825,11 +2235,26 @@ this.el.innerHTML=`
 <div class="line"></div>`;
 }
 
+// 立刻结束正在进行的翻页，画面直接落到最新值
+finish(){
+this.timers.forEach(clearTimeout);
+this.timers=[];
+this.el.querySelectorAll(".anim").forEach(e=>e.remove());
+this.el.querySelector(".top span").textContent=this.target;
+this.el.querySelector(".bottom span").textContent=this.target;
+this.value=this.target;
+}
+
 set(v){
-if(v===this.value)return;
+// 目标值没变就不重复触发（定时器刷新比动画快，不判断会叠出多层翻页）
+if(v===this.target)return;
+
+this.finish();
 
 let old=this.value;
+this.target=v;
 
+// 上半页底层立即换成新值（翻走后即可见）
 this.el.querySelector(".top span").textContent=v;
 
 let top=document.createElement("div");
@@ -837,48 +2262,64 @@ top.className="anim anim-top";
 top.innerHTML=`<span>${old}</span>`;
 this.el.appendChild(top);
 
-requestAnimationFrame(()=>top.classList.add("flip-top"));
+let bottom=document.createElement("div");
+bottom.className="anim anim-bottom";
+bottom.innerHTML=`<span>${v}</span>`;
+this.el.appendChild(bottom);
 
-setTimeout(()=>{
+requestAnimationFrame(()=>{
+top.classList.add("flip-top");
+bottom.classList.add("flip-bottom");
+});
+
+// flip-top 时长 0.4s
+this.timers.push(setTimeout(()=>{
 top.remove();
+},400));
+
+// flip-bottom 延迟0.35s + 时长0.35s = 0.7s，播完再换真实下半页
+this.timers.push(setTimeout(()=>{
+bottom.remove();
 this.el.querySelector(".bottom span").textContent=v;
 this.value=v;
-},350);
+this.timers=[];
+},700));
 }
 }
 
 const clock=document.getElementById("clock");
 const dateBox=document.getElementById("date");
-const clockWrapper=document.getElementById("clockWrapper");
-const scaleValue=document.getElementById("scaleValue");
 
-let digits=[];
+const pad2=v=>String(v).padStart(2,"0");
+
+// =============================
+// 时钟数字
+// =============================
+const digits=[];
+const clockColons=[];
+
 for(let i=0;i<6;i++){
-let d=new FlipDigit("0");
+const d=new FlipDigit("0");
 digits.push(d);
 clock.appendChild(d.el);
 
 if(i===1||i===3){
-let c=document.createElement("div");
+const c=document.createElement("div");
 c.className="colon";
 c.innerHTML=":";
 clock.appendChild(c);
+clockColons.push(c);
 }
 }
 
-let ampm=document.createElement("div");
+const ampm=document.createElement("div");
 ampm.className="ampm";
 clock.appendChild(ampm);
 
 
 // =============================
-// 设置读取
+// 语言表
 // =============================
-let saveData=JSON.parse(localStorage.getItem("flipClockSetting")||"{}");
-
-let lang = localStorage.getItem("clockLang") || "zh";
-
-
 const langText = {
 
 zh:{
@@ -887,8 +2328,20 @@ date:"显示日期",
 hour:"24小时制",
 second:"显示秒数",
 awake:"屏幕常亮",
+notify:"桌面通知",
 language:"language",
-week:["日","一","二","三","四","五","六"]
+week:["日","一","二","三","四","五","六"],
+mClock:"时钟",mTimer:"定时器",mAlarm:"闹钟",mPomodoro:"番茄钟",
+min:"分",sec:"秒",minutes:"时长单位：分钟",mStopwatch:"秒表",lap:"计次",lapNo:"计次",lapSplit:"单次",lapTotal:"累计",dayShort:"天",uD:"{n} 天",uH:"{n} 小时",uM:"{n} 分",uS:"{n} 秒",rounds:"轮次",noteTitle:"番茄工作法",noteBody:"默认专注 25 分钟、休息 5 分钟，每完成 4 轮后换成更长的休息。工作、短休、长休和轮次都可以用滚轮调整。",
+start:"开始",pause:"暂停",reset:"重置",stop:"停止",
+addAlarm:"添加闹钟",alarmTitle:"闹钟",nextLabel:"下一个闹钟",noActive:"没有开启的闹钟",nextSub:"{name} · 还有 {t}",untilD:"{d} 天 {h} 小时",untilH:"{h} 小时 {m} 分",untilM:"{m} 分",confirmAdd:"添加",noAlarms:"还没有闹钟",alarmHint:"不选星期 = 仅响一次",labelPh:"备注（可选）",
+work:"工作",shortBreak:"短休",longBreak:"长休",
+everyDay:"每天",once:"仅一次",weekPrefix:"周",
+phaseWork:"工作时间",phaseShort:"短休息",phaseLong:"长休息",
+cycles:"已完成 {n} 个番茄",
+ringTimer:"定时器时间到",ringAlarm:"闹钟",
+ringWorkDone:"工作结束，休息一下",ringBreakDone:"休息结束，开始工作",
+ringNext:"点击停止后自动进入：{x}"
 },
 
 en:{
@@ -897,195 +2350,738 @@ date:"Show Date",
 hour:"24 Hour",
 second:"Show Seconds",
 awake:"Keep Screen Awake",
+notify:"Desktop Notifications",
 language:"语言",
-week:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
+week:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+mClock:"Clock",mTimer:"Timer",mAlarm:"Alarm",mPomodoro:"Pomodoro",
+min:"min",sec:"sec",minutes:"Durations in minutes",mStopwatch:"Stopwatch",lap:"Lap",lapNo:"#",lapSplit:"Lap time",lapTotal:"Total",dayShort:"d",uD:"{n} d",uH:"{n} h",uM:"{n} min",uS:"{n} sec",rounds:"Rounds",noteTitle:"Pomodoro technique",noteBody:"Focus for 25 minutes and rest for 5 by default, with a longer break after every 4 rounds. Scroll the wheels to adjust each duration and the number of rounds.",
+start:"Start",pause:"Pause",reset:"Reset",stop:"Stop",
+addAlarm:"Add Alarm",alarmTitle:"Alarm",nextLabel:"Next alarm",noActive:"No active alarms",nextSub:"{name} · in {t}",untilD:"{d} d {h} h",untilH:"{h} h {m} min",untilM:"{m} min",confirmAdd:"Add",noAlarms:"No alarms yet",alarmHint:"No weekday selected = ring once",labelPh:"Label (optional)",
+work:"Work",shortBreak:"Short",longBreak:"Long",
+everyDay:"Every day",once:"Once",weekPrefix:"",
+phaseWork:"Focus",phaseShort:"Short Break",phaseLong:"Long Break",
+cycles:"Pomodoros done: {n}",
+ringTimer:"Timer finished",ringAlarm:"Alarm",
+ringWorkDone:"Focus session done, take a break",ringBreakDone:"Break over, back to work",
+ringNext:"Press Stop to continue to: {x}"
 }
 
 };
 
-let showDate = saveData.showDate ?? true;
-let is24Hour = saveData.is24Hour ?? true;
-let showSecond = saveData.showSecond ?? false;
-let clockScale = saveData.clockScale ?? 1;
-const baseScale = 3;
-const maxScale = 2;
-const minScale = 0.5;
+// 新增文案（和上面的表合并；注意 day / hour 这类名字不能和已有键重复）
+Object.assign(langText.zh,{
+fullscreen:"全屏",
+sound:"提示音",soundBeep:"蜂鸣",soundBell:"铃声",soundSoft:"轻柔",
+volume:"音量",brightness:"亮度",burn:"防烧屏",
+unitDay:"天",unitHour:"时",
+skip:"跳过",snooze:"稍后提醒 5 分钟",saveAlarm:"保存",
+alarmNote:"闹钟需要保持此页面打开，且电脑不休眠才会响",
+presetM:"{n}分",presetH:"{n}时",
+lateBy:"晚响 {n} 分钟",
+edit:"编辑",del:"删除",
+toastNoWake:"当前浏览器不支持屏幕常亮",
+toastNoNotify:"当前浏览器不支持桌面通知",
+toastNotifyDenied:"未获得通知权限，请在浏览器地址栏左侧的站点设置中允许通知",
+toastNoFullscreen:"当前设备不支持全屏"
+});
+
+Object.assign(langText.en,{
+fullscreen:"Fullscreen",
+sound:"Alert sound",soundBeep:"Beep",soundBell:"Bell",soundSoft:"Soft",
+volume:"Volume",brightness:"Brightness",burn:"Burn-in guard",
+unitDay:"day",unitHour:"hr",
+skip:"Skip",snooze:"Snooze 5 min",saveAlarm:"Save",
+alarmNote:"Alarms only ring while this page stays open and the computer is awake",
+presetM:"{n}m",presetH:"{n}h",
+lateBy:"{n} min late",
+edit:"Edit",del:"Delete",
+toastNoWake:"Keep-awake is not supported in this browser",
+toastNoNotify:"Desktop notifications are not supported in this browser",
+toastNotifyDenied:"Notification permission was not granted. Allow it in the site settings next to the address bar.",
+toastNoFullscreen:"Fullscreen is not supported on this device"
+});
+
+
+// =============================
+// 小工具 / 存取
+// =============================
+function loadJSON(key,fallback){
+try{
+const v=JSON.parse(localStorage.getItem(key));
+return (v===null||v===undefined) ? fallback : v;
+}catch(e){
+return fallback;
+}
+}
+
+function saveJSON(key,val){
+try{ localStorage.setItem(key,JSON.stringify(val)); }catch(e){}
+}
+
+function num(v,min,max,def){
+v=Number(v);
+return Number.isFinite(v) ? Math.min(max,Math.max(min,Math.round(v))) : def;
+}
+
+function esc(s){
+return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+
+// =============================
+// 设置读取
+// =============================
+const saveData=loadJSON("flipClockSetting",{});
+
+let lang=localStorage.getItem("clockLang");
+if(!langText[lang]) lang="zh";
+
+let showDate=saveData.showDate ?? true;
+let is24Hour=saveData.is24Hour ?? true;
+let showSecond=saveData.showSecond ?? false;
+let clockScale=Math.min(2,Math.max(0.5,Number(saveData.clockScale)||1));
+let burnOn=saveData.burn===true;
+let brightness=num(saveData.bright,30,100,100);
+let soundType=["beep","bell","soft"].includes(saveData.sound) ? saveData.sound : "beep";
+let soundVolume=num(saveData.volume,0,100,60);
+
+const baseScale=3;
+const maxScale=2;
+const minScale=0.5;
+
+function saveSetting(){
+saveJSON("flipClockSetting",{
+showDate,is24Hour,showSecond,clockScale,
+burn:burnOn,bright:brightness,sound:soundType,volume:soundVolume
+});
+}
+
+function T(){ return langText[lang]; }
+function fmt(str,o){ return str.replace(/\{(\w+)\}/g,(m,k)=>o[k]); }
+function weekBtnText(i){ return lang==="zh" ? T().week[i] : T().week[i].slice(0,2); }
+
+
+// =============================
+// 计时器驱动：优先用 Web Worker，后台标签页里也不会被浏览器限速
+// =============================
+const tickTasks=new Map();
+let tickSeq=0;
+
+function setTick(fn,ms){
+const id=++tickSeq;
+tickTasks.set(id,{fn,ms,last:0});
+return id;
+}
+
+function clearTick(id){
+tickTasks.delete(id);
+}
+
+function runTicks(){
+const now=performance.now();
+tickTasks.forEach(t=>{
+if(now-t.last>=t.ms-15){
+t.last=now;
+try{ t.fn(); }catch(e){ console.error(e); }
+}
+});
+}
+
+(function startTicker(){
+let fallback=false;
+function useFallback(){
+if(fallback) return;
+fallback=true;
+setInterval(runTicks,250);
+}
+try{
+const blob=new Blob(["setInterval(function(){postMessage(0)},250)"],{type:"text/javascript"});
+const w=new Worker(URL.createObjectURL(blob));
+w.onmessage=runTicks;
+w.onerror=useFallback;
+}catch(e){
+useFallback();
+}
+})();
+
+
+// =============================
+// 底部小提示（代替 alert）
+// =============================
+let toastTimer=null;
+
+function toast(msg){
+toastBox.textContent=msg;
+toastBox.classList.add("show");
+clearTimeout(toastTimer);
+toastTimer=setTimeout(()=>toastBox.classList.remove("show"),3800);
+}
+
+
+// =============================
+// 桌面通知
+// =============================
+let notifyEnabled=loadJSON("flipClockNotify",false)===true;
+if(!("Notification" in window) || Notification.permission!=="granted") notifyEnabled=false;
+
+notifySwitch.checked=notifyEnabled;
+
+notifySwitch.onchange=async function(){
+if(this.checked){
+if(!("Notification" in window)){
+toast(T().toastNoNotify);
+this.checked=false;
+notifyEnabled=false;
+}else{
+const perm=Notification.permission==="granted" ? "granted" : await Notification.requestPermission();
+notifyEnabled=(perm==="granted");
+if(!notifyEnabled){
+this.checked=false;
+toast(T().toastNotifyDenied);
+}
+}
+}else{
+notifyEnabled=false;
+}
+saveJSON("flipClockNotify",notifyEnabled);
+};
+
+function notifyUser(title,body){
+if(notifyEnabled && "Notification" in window && Notification.permission==="granted"){
+try{
+const n=new Notification(title,{body:body||""});
+n.onclick=()=>{ window.focus(); n.close(); };
+}catch(e){}
+}
+}
+
+
+// =============================
+// 提示音（蜂鸣 / 铃声 / 轻柔，可调音量）
+// =============================
+let audioCtx=null;
+
+// 浏览器要求先有一次用户操作才能发声，这里在第一次操作时解锁
+function unlockAudio(){
+try{
+if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+if(audioCtx.state==="suspended") audioCtx.resume();
+}catch(e){}
+}
+
+["click","touchstart","keydown"].forEach(ev=>document.addEventListener(ev,unlockAudio));
+
+function tone(freq,start,dur,type,peak){
+const t=audioCtx.currentTime+start;
+const osc=audioCtx.createOscillator();
+const g=audioCtx.createGain();
+osc.type=type;
+osc.frequency.value=freq;
+const p=Math.max(0.0002,peak*soundVolume/100);
+g.gain.setValueAtTime(0.0001,t);
+g.gain.exponentialRampToValueAtTime(p,t+0.02);
+g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+osc.connect(g);
+g.connect(audioCtx.destination);
+osc.start(t);
+osc.stop(t+dur+0.05);
+}
+
+function playRingOnce(){
+if(!audioCtx || soundVolume<=0) return;
+if(soundType==="bell"){
+tone(1046,0,1.1,"sine",0.5);
+tone(2093,0,0.6,"sine",0.15);
+tone(1568,0.5,0.9,"sine",0.35);
+}else if(soundType==="soft"){
+tone(523,0,0.7,"triangle",0.5);
+tone(659,0.3,0.7,"triangle",0.4);
+}else{
+tone(880,0,0.2,"sine",0.5);
+tone(880,0.22,0.2,"sine",0.5);
+}
+}
+
+function previewSound(){
+unlockAudio();
+playRingOnce();
+}
+
+let ringSoundId=null;
+
+function startRingSound(){
+stopRingSound();
+unlockAudio();
+playRingOnce();
+ringSoundId=setTick(playRingOnce,1000);
+}
+
+function stopRingSound(){
+if(ringSoundId!==null){
+clearTick(ringSoundId);
+ringSoundId=null;
+}
+}
+
+
+// =============================
+// 到时提醒弹层（多个提醒会排队；最长响 60 秒；闹钟可「稍后提醒」）
+// =============================
+const RING_MAX_MS=60000;
+let ringQueue=[];
+let ringActive=false;
+let ringCurrent=null;
+let ringAutoId=null;
+
+function showRing(title,sub,onDismiss,opts){
+ringQueue.push({title,sub,onDismiss,snooze:(opts&&opts.snooze)||null});
+if(!ringActive) nextRing();
+}
+
+function nextRing(){
+clearTimeout(ringAutoId);
+const item=ringQueue.shift();
+
+if(!item){
+ringActive=false;
+ringCurrent=null;
+ringOverlay.classList.remove("show");
+applyDim();
+updateTitle();
+return;
+}
+
+ringActive=true;
+ringCurrent=item;
+ringTitle.textContent=item.title;
+ringSub.textContent=item.sub||"";
+ringSnoozeBtn.style.display=item.snooze ? "" : "none";
+ringOverlay.classList.add("show");
+
+startRingSound();
+applyDim();
+updateTitle();
+
+// 页面就在眼前时已有全屏弹层，不再重复弹桌面通知
+if(document.visibilityState!=="visible" || !document.hasFocus()){
+notifyUser(item.title,item.sub);
+}
+
+ringStopBtn.focus({preventScroll:true});
+ringAutoId=setTimeout(()=>closeRing(false),RING_MAX_MS);
+}
+
+function closeRing(snoozed){
+stopRingSound();
+clearTimeout(ringAutoId);
+const item=ringCurrent;
+ringCurrent=null;
+if(item){
+if(snoozed && item.snooze) item.snooze();
+else if(item.onDismiss) item.onDismiss();
+}
+nextRing();
+}
+
+ringStopBtn.onclick=()=>closeRing(false);
+ringSnoozeBtn.onclick=()=>closeRing(true);
+
+// 响铃时：空格 / 回车 / Esc 都可以直接停止
+document.addEventListener("keydown",e=>{
+if(!ringActive) return;
+if(e.key===" " || e.key==="Enter" || e.key==="Escape"){
+e.preventDefault();
+e.stopPropagation();
+if(!e.repeat) closeRing(false);
+}
+},true);
+
+
+// =============================
+// 翻页数字显示
+// =============================
+function buildFlipDisplay(container){
+const arr=[];
+for(let i=0;i<4;i++){
+const d=new FlipDigit("0");
+arr.push(d);
+container.appendChild(d.el);
+if(i===1){
+const c=document.createElement("div");
+c.className="colon";
+c.innerHTML=":";
+container.appendChild(c);
+}
+}
+return arr;
+}
+
+function renderTime(arr,totalSeconds){
+totalSeconds=Math.max(0,totalSeconds);
+const mm=Math.min(99,Math.floor(totalSeconds/60));
+const ss=totalSeconds%60;
+(pad2(mm)+pad2(ss)).split("").forEach((v,i)=>arr[i].set(v));
+}
+
+// 天:时:分:秒 共 8 位。level 0 只显示 分:秒；1 显示 时:分:秒；2 显示 天:时:分:秒
+function buildDHMS(container){
+const dg=[], colons=[];
+for(let i=0;i<8;i++){
+const d=new FlipDigit("0");
+dg.push(d);
+container.appendChild(d.el);
+if(i===1||i===3||i===5){
+const c=document.createElement("div");
+c.className="colon";
+c.innerHTML=":";
+container.appendChild(c);
+colons.push(c);
+}
+}
+return {digits:dg,colons};
+}
+
+function renderDHMS(obj,total,level){
+total=Math.max(0,total);
+const d=Math.min(99,Math.floor(total/86400));
+const h=Math.floor(total%86400/3600);
+const m=Math.floor(total%3600/60);
+const sec=total%60;
+const str=pad2(d)+pad2(h)+pad2(m)+pad2(sec);
+
+const start=level===2 ? 0 : level===1 ? 2 : 4;
+obj.digits.forEach((dg,i)=>{
+dg.el.style.display=i>=start ? "" : "none";
+dg.set(str[i]);
+});
+obj.colons[0].style.display=level===2 ? "" : "none";
+obj.colons[1].style.display=level>=1 ? "" : "none";
+obj.colons[2].style.display="";
+}
+
+function durationText(total){
+const t=T();
+const d=Math.floor(total/86400), h=Math.floor(total%86400/3600), m=Math.floor(total%3600/60), sec=total%60;
+const parts=[];
+if(d) parts.push(fmt(t.uD,{n:d}));
+if(h) parts.push(fmt(t.uH,{n:h}));
+if(m) parts.push(fmt(t.uM,{n:m}));
+if(sec||!parts.length) parts.push(fmt(t.uS,{n:sec}));
+return parts.join(" ");
+}
+
+// 紧凑格式：分:秒 / 时:分:秒 / N天 时:分:秒
+function fmtLap(sec){
+const d=Math.floor(sec/86400), h=Math.floor(sec%86400/3600), m=Math.floor(sec%3600/60), s=sec%60;
+if(d>0) return d+T().dayShort+" "+pad2(h)+":"+pad2(m)+":"+pad2(s);
+if(h>0) return pad2(h)+":"+pad2(m)+":"+pad2(s);
+return pad2(m)+":"+pad2(s);
+}
+
+const timerDisp=buildDHMS(timerDisplay);
+const swDisp=buildDHMS(stopwatchDisplay);
+const pomodoroDigits=buildFlipDisplay(pomodoroDisplay);
+const nextAlarmDigits=buildFlipDisplay(nextAlarmDisplay);
+
+
+// =============================
+// 滚动选择（鼠标滚轮 / 点击 / 触摸 / 键盘上下键），首尾相接无限循环
+// =============================
+function makeWheel(el,min,max,init,onChange,H=34,ariaKey=""){
+const count=max-min+1;
+const REPS=3;                       // 复制 3 份首尾相接，滚到头时悄悄跳回中间一份
+const total=count*REPS;
+let curPos=count+(init-min), target=curPos, idleTimer=null, acc=0, lastWheelAt=0;
+
+el.tabIndex=0;
+el.setAttribute("role","spinbutton");
+el.setAttribute("aria-valuemin",min);
+el.setAttribute("aria-valuemax",max);
+if(ariaKey) el.dataset.ariaKey=ariaKey;
+
+function value(p){
+return min+((p%count)+count)%count;
+}
+
+for(let r=0;r<REPS;r++){
+for(let i=0;i<count;i++){
+const d=document.createElement("div");
+d.textContent=pad2(min+i);
+const pos=r*count+i;
+d.onclick=()=>go(pos);
+el.appendChild(d);
+}
+}
+
+function mark(){
+[...el.children].forEach((c,i)=>c.classList.toggle("sel",i===curPos));
+el.setAttribute("aria-valuenow",value(curPos));
+}
+
+function go(p){
+target=Math.max(0,Math.min(total-1,p));
+lastWheelAt=performance.now();
+el.scrollTo({top:target*H,behavior:"smooth"});
+}
+
+el.addEventListener("wheel",e=>{
+e.preventDefault();
+const dy=e.deltaMode===1 ? e.deltaY*33 : e.deltaY;
+if(Math.abs(dy)>=50){
+acc=0;                                   // 鼠标滚轮：一格 = 一个数字
+go(target+(dy>0?1:-1));
+}else{
+acc+=dy;                                 // 触控板：累计到一定距离再走一格
+if(Math.abs(acc)>=40){
+go(target+(acc>0?1:-1));
+acc=0;
+}
+}
+},{passive:false});
+
+el.addEventListener("keydown",e=>{
+const k=e.key;
+if(k==="ArrowDown") go(target+1);
+else if(k==="ArrowUp") go(target-1);
+else if(k==="PageDown") go(target+10);
+else if(k==="PageUp") go(target-10);
+else if(k==="Home") go(count);
+else if(k==="End") go(count+count-1);
+else return;
+e.preventDefault();
+});
+
+el.addEventListener("scroll",()=>{
+const p=Math.max(0,Math.min(total-1,Math.round(el.scrollTop/H)));
+if(p!==curPos){
+const old=value(curPos);
+curPos=p;
+mark();
+const v=value(p);
+if(v!==old) onChange(v);
+}
+
+clearTimeout(idleTimer);
+idleTimer=setTimeout(()=>{
+// 刚用滚轮操作过、却没滚到目标位置（连续快速滚动时偶尔会被打断）：补滚一次，不丢步数
+if(target!==curPos && performance.now()-lastWheelAt<600){
+el.scrollTo({top:target*H,behavior:"smooth"});
+return;
+}
+target=curPos;
+// 停下后，如果落在前后两份里，就无感跳回中间一份
+if(curPos<count || curPos>=2*count){
+curPos=count+((curPos%count)+count)%count;
+target=curPos;
+el.scrollTop=curPos*H;
+mark();
+}
+},150);
+});
+
+mark();
+
+return {
+get:()=>value(curPos),
+set(v){
+v=Math.max(min,Math.min(max,v));
+curPos=target=count+(v-min);
+el.scrollTop=curPos*H;
+mark();
+onChange(v);
+}
+};
+}
+
+
+// =============================
+// 缩放适配（时钟 / 定时器 / 秒表 / 番茄钟；内容太宽或太高时整体缩小到放得下）
+// =============================
+function fitWrapper(el,scale){
+el.style.transform=`translate(-50%,-50%) scale(${scale})`;
+if(getComputedStyle(el).display==="none") return;
+const r=el.getBoundingClientRect();
+if(!r.width || !r.height) return;
+const k=Math.min(1,window.innerHeight*0.92/r.height,window.innerWidth*0.94/r.width);
+if(k<1) el.style.transform=`translate(-50%,-50%) scale(${scale*k})`;
+}
+
+function applyScale(){
+const W=window.innerWidth, H=window.innerHeight;
+
+// 小屏自动缩小，大屏保持原尺寸（基准按带鱼屏）
+const fitScale=Math.max(Math.min(W/2400,H/550),0.5);
+const finalScale=fitScale*baseScale*clockScale;
+
+// 控件（按钮、滚轮、说明）缩到时钟缩放的 1/3；窗口较小时设下限，保证文字看得清
+const uiZoom=Math.max(1/3,1/finalScale);
+
+[timerWrapper,stopwatchWrapper,pomodoroWrapper].forEach(el=>{
+el.style.transform=`translate(-50%,-50%) scale(${finalScale})`;
+el.querySelectorAll(".cz").forEach(c=>{
+c.style.transform="none";
+c.style.marginBottom="0px";
+const h=c.offsetHeight;
+c.style.transformOrigin="top center";
+c.style.transform=`scale(${uiZoom})`;
+c.style.marginBottom=`${-h*(1-uiZoom)}px`;
+});
+});
+
+[clockWrapper,timerWrapper,stopwatchWrapper,pomodoroWrapper].forEach(el=>fitWrapper(el,finalScale));
+
+// 闹钟页顶部的大号「下一个闹钟」，窄屏上缩小
+const topZoom=Math.min(1.25,W*0.94/430);
+nextBox.style.zoom=topZoom;
+worldTop.style.zoom=topZoom*(worldWrapper.classList.contains("planning") ? 0.7 : 0.85);   // 世界时钟内容较多，顶部数字比闹钟页小一些
+
+scaleValue.innerHTML=Math.round(clockScale*100)+"%";
+}
+
+window.addEventListener("resize",applyScale);
 
 
 // =============================
 // 语言切换
 // =============================
 function changeLanguage(){
-let t = langText[lang];
-document.getElementById("settingTitle").innerHTML = t.setting;
-dateSwitch.parentElement.querySelector("span").innerHTML = t.date;
-hourSwitch.parentElement.querySelector("span").innerHTML = t.hour;
-secondSwitch.parentElement.querySelector("span").innerHTML = t.second;
-awakeSwitch.parentElement.querySelector("span").innerHTML = t.awake;
-document.getElementById("langText").innerHTML = t.language;
+const t=T();
+document.getElementById("settingTitle").innerHTML=t.setting;
+dateSwitch.parentElement.querySelector("span").innerHTML=t.date;
+hourSwitch.parentElement.querySelector("span").innerHTML=t.hour;
+secondSwitch.parentElement.querySelector("span").innerHTML=t.second;
+awakeSwitch.parentElement.querySelector("span").innerHTML=t.awake;
+notifySwitch.parentElement.querySelector("span").innerHTML=t.notify;
+document.getElementById("langText").innerHTML=t.language;
+applyNewLang();
+update();
 }
 
-// =============================
-// 缩放逻辑
-// =============================
-function applyScale(){
-let screenW = window.innerWidth;
-let screenH = window.innerHeight;
-
-let baseWidth = 2400;
-let baseHeight = 550;
-
-let fitScale = Math.max(
-    Math.min(
-        screenW / baseWidth,
-        screenH / baseHeight
-    ),
-    0.5
-);
-
-let finalScale = fitScale * baseScale * clockScale;
-
-clockWrapper.style.transform = `translate(-50%,-50%) scale(${finalScale})`;
-scaleValue.innerHTML = Math.round(clockScale*100)+"%";
-saveSetting();
-}
-
-window.addEventListener("resize", applyScale);
 
 // =============================
-// 更新时间
+// 时钟更新
 // =============================
 function update(){
-let now=new Date();
+const now=new Date();
 let hour=now.getHours();
 let suffix="";
 
 if(!is24Hour){
-suffix=hour>=12?"PM":"AM";
+suffix=hour>=12 ? "PM" : "AM";
 hour=hour%12||12;
 }
 
-let str = String(hour).padStart(2,"0") + String(now.getMinutes()).padStart(2,"0");
-if(showSecond){
-    str += String(now.getSeconds()).padStart(2,"0");
-}
+let str=pad2(hour)+pad2(now.getMinutes());
+if(showSecond) str+=pad2(now.getSeconds());
 
 str.split("").forEach((v,i)=>{
-    if(digits[i]){
-        digits[i].set(v);
-    }
+if(digits[i]) digits[i].set(v);
 });
 
-if(showSecond){
-    digits[4].el.style.display="block";
-    digits[5].el.style.display="block";
-    document.querySelectorAll(".colon")[1].style.display="block";
-}else{
-    digits[4].el.style.display="none";
-    digits[5].el.style.display="none";
-    document.querySelectorAll(".colon")[1].style.display="none";
-}
+const secDisplay=showSecond ? "" : "none";
+digits[4].el.style.display=secDisplay;
+digits[5].el.style.display=secDisplay;
+clockColons[1].style.display=secDisplay;
 
-ampm.style.display=is24Hour?"none":"block";
+ampm.style.display=is24Hour ? "none" : "block";
 ampm.innerHTML=suffix;
 
-let week=langText[lang].week[now.getDay()];
+const week=T().week[now.getDay()];
 if(lang==="zh"){
 dateBox.innerHTML=`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 星期${week}`;
 }else{
-dateBox.innerHTML=`${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${week}`;
+dateBox.innerHTML=`${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())} ${week}`;
 }
-dateBox.style.display=showDate?"block":"none";
-}
-
-// =============================
-// 保存配置
-// =============================
-function saveSetting(){
-localStorage.setItem("flipClockSetting",
-JSON.stringify({
-showDate,
-is24Hour,
-showSecond,
-clockScale,
-language:lang
-}));
+dateBox.style.display=showDate ? "block" : "none";
 }
 
 
 // =============================
-// 初始化
+// 设置面板里的控件
 // =============================
 dateSwitch.checked=showDate;
 hourSwitch.checked=is24Hour;
 secondSwitch.checked=showSecond;
-langSwitch.value = lang;
+langSwitch.value=lang;
+soundSelect.value=soundType;
+volumeRange.value=soundVolume;
+brightRange.value=brightness;
+burnSwitch.checked=burnOn;
 
-changeLanguage();
-applyScale();
-update();
-setInterval(update,1000);
-
-
-
-// =============================
-// 缩放按钮事件
-// =============================
 zoomIn.onclick=()=>{
 clockScale=Math.min(maxScale,clockScale+0.1);
 applyScale();
+saveSetting();
 };
 
 zoomOut.onclick=()=>{
 clockScale=Math.max(minScale,clockScale-0.1);
 applyScale();
-};
-
-dateSwitch.onchange=()=>{showDate=dateSwitch.checked;update();saveSetting()}
-hourSwitch.onchange=()=>{is24Hour=hourSwitch.checked;update();saveSetting()}
-secondSwitch.onchange=()=>{showSecond=secondSwitch.checked;update();saveSetting()}
-
-langSwitch.onchange=()=>{
-lang = langSwitch.value;
-localStorage.setItem("clockLang",lang);
-changeLanguage();
 saveSetting();
 };
+
+dateSwitch.onchange=()=>{ showDate=dateSwitch.checked; update(); applyScale(); saveSetting(); };
+hourSwitch.onchange=()=>{ is24Hour=hourSwitch.checked; update(); renderWorld(true); applyScale(); saveSetting(); };
+secondSwitch.onchange=()=>{ showSecond=secondSwitch.checked; update(); applyScale(); saveSetting(); };
+
+langSwitch.onchange=()=>{
+lang=langSwitch.value;
+localStorage.setItem("clockLang",lang);
+changeLanguage();
+applyScale();
+};
+
+soundSelect.onchange=()=>{ soundType=soundSelect.value; saveSetting(); previewSound(); };
+volumeRange.onchange=()=>{ soundVolume=Number(volumeRange.value); saveSetting(); previewSound(); };
+
+brightRange.oninput=()=>{ brightness=Number(brightRange.value); saveSetting(); applyDim(); };
+
+burnSwitch.onchange=()=>{
+burnOn=burnSwitch.checked;
+saveSetting();
+applyShift(true);
+applyDim();
+};
+
 
 // =============================
 // 屏幕常亮
 // =============================
 let wakeLock=null;
+
 awakeSwitch.onchange=async function(){
 if(this.checked){
 try{
 wakeLock=await navigator.wakeLock.request("screen");
 }catch(e){
-alert("不支持常亮");
+toast(T().toastNoWake);
 this.checked=false;
 }
-}else{
-if(wakeLock){
+}else if(wakeLock){
 wakeLock.release();
 wakeLock=null;
 }
-}
 };
+
+// 页面切后台/锁屏时系统会自动释放 Wake Lock，回到前台时如果开关仍然开启，自动重新申请
+document.addEventListener("visibilitychange",async ()=>{
+if(document.visibilityState==="visible" && awakeSwitch.checked && wakeLock===null){
+try{ wakeLock=await navigator.wakeLock.request("screen"); }catch(e){}
+}
+});
 
 
 // =============================
-// 设置面板
+// 设置面板（点别处才关闭）
 // =============================
 settingsBtn.onclick=e=>{
 e.stopPropagation();
 settingsPanel.classList.toggle("show");
 };
 
-settingsPanel.addEventListener("click",function(e){
-e.stopPropagation();
-});
+settingsPanel.addEventListener("click",e=>e.stopPropagation());
 
-document.addEventListener("click",function(e){
+document.addEventListener("click",e=>{
 if(!settingsPanel.contains(e.target) && e.target!==settingsBtn){
 settingsPanel.classList.remove("show");
 }
@@ -1096,8 +3092,10 @@ settingsPanel.classList.remove("show");
 // 全屏
 // =============================
 fullscreenBtn.onclick=()=>{
+const root=document.documentElement;
 if(!document.fullscreenElement){
-document.documentElement.requestFullscreen();
+if(!root.requestFullscreen){ toast(T().toastNoFullscreen); return; }
+root.requestFullscreen().catch(()=>toast(T().toastNoFullscreen));
 }else{
 document.exitFullscreen();
 }
@@ -1105,19 +3103,1463 @@ document.exitFullscreen();
 
 
 // =============================
-// 鼠标悬浮显示按钮
+// 防烧屏：慢速呼吸（亮度每 5 分钟起伏一个周期）+ 像素位移（每 5 分钟微移几个像素）；手动亮度
+// =============================
+const BREATH_MS=5*60*1000;
+const SHIFT_MS=5*60*1000;
+const IDLE_MS=15000;
+let lastActivity=Date.now();
+let shiftBucket=-1, shiftX=0, shiftY=0;
+
+function breathFactor(now){
+if(!burnOn) return 1;
+if(now-lastActivity<IDLE_MS || ringActive) return 1;    // 有操作、或正在响铃时保持全亮
+return 0.775+0.225*Math.cos(2*Math.PI*(now%BREATH_MS)/BREATH_MS);   // 在 100% 和 55% 之间起伏
+}
+
+function applyDim(){
+const f=breathFactor(Date.now());
+dimLayer.style.opacity=String(Math.max(0,Math.min(0.9,1-(brightness/100)*f)));
+}
+
+function applyShift(force){
+const bucket=Math.floor(Date.now()/SHIFT_MS);
+if(!force && bucket===shiftBucket) return;
+shiftBucket=bucket;
+
+let dx=0, dy=0;
+if(burnOn){
+const R=10;
+do{
+dx=Math.round((Math.random()*2-1)*R);
+dy=Math.round((Math.random()*2-1)*R);
+}while(dx===shiftX && dy===shiftY);
+}
+shiftX=dx;
+shiftY=dy;
+document.documentElement.style.setProperty("--sx",dx+"px");
+document.documentElement.style.setProperty("--sy",dy+"px");
+}
+
+
+// =============================
+// 鼠标移动 / 触摸 / 按键时显示按钮，不动 3 秒后自动隐藏
 // =============================
 let hideTimer;
+
 function showButtons(){
+lastActivity=Date.now();
 floatButtons.classList.add("show");
+document.body.classList.add("ui-active");
+applyDim();
+
 clearTimeout(hideTimer);
-hideTimer=setTimeout(()=>{
+hideTimer=setTimeout(function hide(){
+// 正在输入备注时先不隐藏
+if(document.querySelector(".idle-hide:focus-within")){
+hideTimer=setTimeout(hide,1000);
+return;
+}
 floatButtons.classList.remove("show");
+document.body.classList.remove("ui-active");
 },3000);
 }
 
-document.addEventListener("mousemove",showButtons);
-document.addEventListener("touchstart",showButtons);
+["mousemove","mousedown","wheel","keydown","touchstart"].forEach(ev=>{
+document.addEventListener(ev,showButtons,{passive:true});
+});
+
+
+// =============================
+// 模式切换（记住上次的模式；网址 #pomodoro 之类可直接打开对应模式）
+// =============================
+const MODES=["clock","world","timer","stopwatch","alarm","pomodoro"];
+
+function switchMode(mode){
+if(!MODES.includes(mode)) mode="clock";
+
+clockWrapper.style.display=mode==="clock" ? "flex" : "none";
+worldWrapper.classList.toggle("show",mode==="world");
+timerWrapper.classList.toggle("show",mode==="timer");
+stopwatchWrapper.classList.toggle("show",mode==="stopwatch");
+alarmWrapper.classList.toggle("show",mode==="alarm");
+pomodoroWrapper.classList.toggle("show",mode==="pomodoro");
+
+modeClockBtn.classList.toggle("active",mode==="clock");
+modeWorldBtn.classList.toggle("active",mode==="world");
+modeTimerBtn.classList.toggle("active",mode==="timer");
+modeStopwatchBtn.classList.toggle("active",mode==="stopwatch");
+modeAlarmBtn.classList.toggle("active",mode==="alarm");
+modePomodoroBtn.classList.toggle("active",mode==="pomodoro");
+
+if(mode==="alarm") renderAlarmList();
+if(mode==="world"){
+if(worldPlan){ wheelWHCtl.set(wheelWHCtl.get()); wheelWMCtl.set(wheelWMCtl.get()); }
+renderWorld(true);
+worldWrapper.scrollTop=0;
+}
+
+// 面板从隐藏变为显示后，滚轮需要重新定位到当前数值
+if(mode==="timer"){
+[wheelTDCtl,wheelTHCtl,wheelTMCtl,wheelTSCtl].forEach(w=>w.set(w.get()));
+}
+if(mode==="pomodoro"){
+[wheelPWCtl,wheelPBCtl,wheelPLCtl,wheelPRCtl].forEach(w=>w.set(w.get()));
+}
+
+applyScale();
+
+localStorage.setItem("flipClockMode",mode);
+try{ history.replaceState(null,"","#"+mode); }catch(e){}
+}
+
+modeClockBtn.onclick=()=>switchMode("clock");
+modeWorldBtn.onclick=()=>switchMode("world");
+modeTimerBtn.onclick=()=>switchMode("timer");
+modeStopwatchBtn.onclick=()=>switchMode("stopwatch");
+modeAlarmBtn.onclick=()=>switchMode("alarm");
+modePomodoroBtn.onclick=()=>switchMode("pomodoro");
+
+window.addEventListener("hashchange",()=>{
+const m=location.hash.slice(1);
+if(MODES.includes(m)) switchMode(m);
+});
+
+
+// =============================
+// 标签页标题：显示正在运行的倒计时
+// =============================
+function updateTitle(){
+let t="Flip Clock";
+if(ringActive && ringCurrent){
+t=ringCurrent.title+" · "+t;
+}else if(timerRunning){
+t=fmtLap(Math.max(0,Math.ceil((timerEndTime-Date.now())/1000)))+" "+T().mTimer+" · "+t;
+}else if(pomodoroRunning){
+t=fmtLap(Math.max(0,Math.ceil((pomodoroEndTime-Date.now())/1000)))+" "+pomodoroPhaseInfo(pomodoroPhaseType).text+" · "+t;
+}else if(swRunning){
+t=fmtLap(swElapsedSec())+" "+T().mStopwatch+" · "+t;
+}
+if(document.title!==t) document.title=t;
+}
+
+
+// =====================================================
+// 定时器（天:时:分:秒，运行状态会保存，刷新后接着走）
+// =====================================================
+const timerSaved=loadJSON("flipClockTimer",{});
+
+let timerD=num(timerSaved.d,0,99,0);
+let timerH=num(timerSaved.h,0,23,0);
+let timerM=num(timerSaved.m,0,59,5);
+let timerS=num(timerSaved.s,0,59,0);
+
+let timerRunning=false;
+let timerTickId=null;
+let timerEndTime=0;
+let timerRemaining=0;
+let timerInitialSeconds=0;
+let timerRunLevel=0;
+let timerLastLevel=-1;
+
+function saveTimerState(){
+saveJSON("flipClockTimer",{
+d:timerD,h:timerH,m:timerM,s:timerS,
+running:timerRunning,end:timerEndTime,rem:timerRemaining,init:timerInitialSeconds,lv:timerRunLevel
+});
+}
+
+// 只有设置了天/时才显示对应位；运行中保持开始时的版面不变
+function timerLevel(){
+return timerD>0 ? 2 : timerH>0 ? 1 : 0;
+}
+
+function showTimer(total){
+const lv=(timerRunning||timerRemaining>0) ? timerRunLevel : timerLevel();
+renderDHMS(timerDisp,total,lv);
+if(lv!==timerLastLevel){
+timerLastLevel=lv;
+applyScale();
+}
+}
+
+function getTimerInputSeconds(){
+return timerD*86400+timerH*3600+timerM*60+timerS;
+}
+
+function setTimerInputsDisabled(v){
+timerWheels.classList.toggle("disabled",v);
+timerPresets.classList.toggle("disabled",v);
+}
+
+function updateTimerPreview(){
+if(!timerRunning && timerRemaining===0){
+showTimer(getTimerInputSeconds());
+}
+saveTimerState();
+}
+
+const wheelTDCtl=makeWheel(wheelTD,0,99,timerD,v=>{timerD=v;updateTimerPreview();},28,"unitDay");
+const wheelTHCtl=makeWheel(wheelTH,0,23,timerH,v=>{timerH=v;updateTimerPreview();},28,"unitHour");
+const wheelTMCtl=makeWheel(wheelTM,0,59,timerM,v=>{timerM=v;updateTimerPreview();},28,"min");
+const wheelTSCtl=makeWheel(wheelTS,0,59,timerS,v=>{timerS=v;updateTimerPreview();},28,"sec");
+
+// 常用时长一键设置
+const TIMER_PRESETS=[{h:0,m:1},{h:0,m:5},{h:0,m:10},{h:0,m:25},{h:0,m:45},{h:1,m:0}];
+
+TIMER_PRESETS.forEach(p=>{
+const b=document.createElement("button");
+b.type="button";
+b.className="ctrl-btn chip";
+b.onclick=()=>{
+if(timerRunning || timerRemaining>0) return;
+wheelTDCtl.set(0);
+wheelTHCtl.set(p.h);
+wheelTMCtl.set(p.m);
+wheelTSCtl.set(0);
+};
+b._preset=p;
+timerPresets.appendChild(b);
+});
+
+function renderPresetLabels(){
+[...timerPresets.children].forEach(b=>{
+const p=b._preset;
+b.textContent=p.h>0 ? fmt(T().presetH,{n:p.h}) : fmt(T().presetM,{n:p.m});
+});
+}
+
+function stopTimerInterval(){
+if(timerTickId!==null){ clearTick(timerTickId); timerTickId=null; }
+timerRunning=false;
+}
+
+function tickTimer(){
+// 用结束时间戳计算剩余秒数，切后台被限速也不会走慢
+const remaining=Math.ceil((timerEndTime-Date.now())/1000);
+if(remaining<=0){
+showTimer(0);
+stopTimerInterval();
+timerRemaining=0;
+timerEndTime=0;
+saveTimerState();
+showRing(T().ringTimer,durationText(timerInitialSeconds),()=>{
+setTimerInputsDisabled(false);
+showTimer(timerInitialSeconds);
+saveTimerState();
+});
+return;
+}
+showTimer(remaining);
+}
+
+timerStartBtn.onclick=()=>{
+if(timerRunning) return;
+unlockAudio();
+let seconds;
+if(timerRemaining>0){
+seconds=timerRemaining;
+}else{
+seconds=getTimerInputSeconds();
+if(seconds<=0) return;
+timerInitialSeconds=seconds;
+timerRunLevel=timerLevel();
+}
+timerEndTime=Date.now()+seconds*1000;
+timerRemaining=0;
+timerRunning=true;
+setTimerInputsDisabled(true);
+timerTickId=setTick(tickTimer,250);
+tickTimer();
+saveTimerState();
+};
+
+timerPauseBtn.onclick=()=>{
+if(!timerRunning) return;
+timerRemaining=Math.max(1,Math.ceil((timerEndTime-Date.now())/1000));
+stopTimerInterval();
+saveTimerState();
+};
+
+timerResetBtn.onclick=()=>{
+stopTimerInterval();
+timerRemaining=0;
+timerEndTime=0;
+setTimerInputsDisabled(false);
+showTimer(getTimerInputSeconds());
+saveTimerState();
+};
+
+// 刷新后恢复：运行中的继续走，暂停的保持暂停
+(function restoreTimer(){
+timerInitialSeconds=num(timerSaved.init,0,99*86400+86399,0) || getTimerInputSeconds();
+timerRunLevel=num(timerSaved.lv,0,2,timerLevel());
+
+if(timerSaved.running && Number(timerSaved.end)>0){
+timerEndTime=Number(timerSaved.end);
+timerRunning=true;
+setTimerInputsDisabled(true);
+timerTickId=setTick(tickTimer,250);
+tickTimer();
+}else if(Number(timerSaved.rem)>0){
+timerRemaining=Math.floor(Number(timerSaved.rem));
+setTimerInputsDisabled(true);
+showTimer(timerRemaining);
+}else{
+showTimer(getTimerInputSeconds());
+}
+})();
+
+
+// =====================================================
+// 秒表（最长 99 天 23:59:59；运行状态会保存）
+// =====================================================
+const SW_MAX=99*86400+23*3600+59*60+59;
+const swSaved=loadJSON("flipClockStopwatch",{});
+
+let swRunning=false;
+let swTickId=null;
+let swStartTime=0;
+let swBaseMs=Math.max(0,Number(swSaved.base)||0);
+let swLastLevel=-1;
+let swLaps=Array.isArray(swSaved.laps) ? swSaved.laps.filter(l=>l && Number.isFinite(l.total)) : [];   // 每项 {n 序号, total 累计秒, split 距上一次的秒数}
+let swLapCount=Math.max(0,Number(swSaved.count)||0);
+
+function saveStopwatchState(){
+saveJSON("flipClockStopwatch",{running:swRunning,start:swStartTime,base:swBaseMs,laps:swLaps,count:swLapCount});
+}
+
+function swElapsedSec(){
+const ms=swBaseMs+(swRunning ? Math.max(0,Date.now()-swStartTime) : 0);   // 系统时间被往回调时不会出现负数
+return Math.min(SW_MAX,Math.floor(ms/1000));
+}
+
+function renderStopwatch(){
+const sec=swElapsedSec();
+const lv=sec>=86400 ? 2 : sec>=3600 ? 1 : 0;    // 随时间增长自动多显示 时 / 天
+renderDHMS(swDisp,sec,lv);
+if(lv!==swLastLevel){
+swLastLevel=lv;
+applyScale();
+}
+return sec;
+}
+
+function swSync(){
+swLapBtn.disabled=!swRunning;    // 只有在走表时才能计次
+}
+
+function swPause(){
+if(!swRunning) return;
+swBaseMs+=Date.now()-swStartTime;
+swRunning=false;
+if(swTickId!==null){ clearTick(swTickId); swTickId=null; }
+swSync();
+saveStopwatchState();
+}
+
+function swTick(){
+if(renderStopwatch()>=SW_MAX) swPause();    // 到 99 天上限自动停住
+}
+
+function swBegin(){
+swRunning=true;
+swSync();
+swTickId=setTick(swTick,250);
+swTick();
+}
+
+swStartBtn.onclick=()=>{
+if(swRunning || swElapsedSec()>=SW_MAX) return;
+swStartTime=Date.now();
+swBegin();
+saveStopwatchState();
+};
+
+swPauseBtn.onclick=swPause;
+
+swResetBtn.onclick=()=>{
+swPause();
+swBaseMs=0;
+swLaps=[];
+swLapCount=0;
+renderLaps();
+renderStopwatch();
+saveStopwatchState();
+};
+
+function renderLaps(skipScale){
+swLapList.innerHTML=swLaps.slice().reverse().map(l=>
+`<div class="lap-row"><span>${pad2(l.n)}</span><span>${fmtLap(l.split)}</span><span>${fmtLap(l.total)}</span></div>`
+).join("");
+swLapBox.classList.toggle("has",swLaps.length>0);
+if(!skipScale) applyScale();    // 列表高度变了，重新适配
+}
+
+swLapBtn.onclick=()=>{
+if(!swRunning) return;
+const total=swElapsedSec();
+const prev=swLaps.length ? swLaps[swLaps.length-1].total : 0;
+swLaps.push({n:++swLapCount,total,split:total-prev});
+if(swLaps.length>99) swLaps.shift();    // 最多保留最近 99 次
+renderLaps();
+swLapList.scrollTop=0;
+saveStopwatchState();
+};
+
+// 刷新后恢复
+if(swSaved.running && Number(swSaved.start)>0){
+swStartTime=Number(swSaved.start);
+swBegin();
+}else{
+renderStopwatch();
+swSync();
+}
+renderLaps(true);
+
+
+// =====================================================
+// 闹钟（可编辑、可稍后提醒；后台限速或短暂休眠后会补查错过的分钟）
+// =====================================================
+function sanitizeAlarms(arr){
+if(!Array.isArray(arr)) return [];
+return arr
+.filter(a=>a && typeof a==="object" && /^\d{2}:\d{2}$/.test(a.time))
+.map(a=>({
+id:String(a.id || Date.now().toString(36)+Math.random().toString(36).slice(2,6)),
+time:a.time,
+days:Array.isArray(a.days) ? a.days.filter(d=>Number.isInteger(d)&&d>=0&&d<=6) : [],
+label:String(a.label||"").slice(0,20),
+enabled:a.enabled!==false
+}));
+}
+
+let alarms=sanitizeAlarms(loadJSON("flipClockAlarms",[]));
+const alarmFired=new Set();         // 记录 "闹钟id@分钟" 避免同一分钟重复触发
+let snoozes=[];                     // 稍后提醒：{at, alarm}
+let lastAlarmCheck=0;
+let newAlarmDays=[];
+let editingAlarmId=null;
+const SNOOZE_MS=5*60000;
+const CATCHUP_MS=15*60000;
+
+function saveAlarms(){
+saveJSON("flipClockAlarms",alarms);
+}
+
+function syncWeekdayButtons(){
+[...weekdayPicker.children].forEach((b,i)=>b.classList.toggle("active",newAlarmDays.includes(i)));
+}
+
+[0,1,2,3,4,5,6].forEach(idx=>{
+const btn=document.createElement("button");
+btn.type="button";
+btn.className="weekday-btn";
+btn.textContent=weekBtnText(idx);
+btn.onclick=()=>{
+newAlarmDays=newAlarmDays.includes(idx) ? newAlarmDays.filter(d=>d!==idx) : newAlarmDays.concat(idx);
+syncWeekdayButtons();
+};
+weekdayPicker.appendChild(btn);
+});
+
+function timeCards(t){
+const c=t.split("");
+return `<div class="fc">${c[0]}</div><div class="fc">${c[1]}</div><span class="fc-colon">:</span><div class="fc">${c[3]}</div><div class="fc">${c[4]}</div>`;
+}
+
+const ICON_EDIT='<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>';
+
+function renderAlarmList(){
+updateNextAlarm();
+alarmList.innerHTML="";
+
+if(alarms.length===0){
+alarmList.innerHTML=`<div class="alarm-empty">${esc(T().noAlarms)}</div>`;
+return;
+}
+
+alarms.slice().sort((a,b)=>a.time.localeCompare(b.time)).forEach(alarm=>{
+const everyDay=alarm.days.length===7;
+const once=alarm.days.length===0;
+
+let name=alarm.label ? esc(alarm.label) : esc(T().ringAlarm);
+if(once) name+=" · "+esc(T().once);
+
+let daysHtml="";
+for(let i=0;i<7;i++){
+const lit=everyDay || alarm.days.includes(i);
+daysHtml+=`<span class="${lit?"on":""}">${esc(weekBtnText(i))}</span>`;
+}
+
+const item=document.createElement("div");
+item.className="alarm-item"+(alarm.enabled?"":" off")+(alarm.id===editingAlarmId?" editing":"");
+item.innerHTML=`
+<div class="alarm-cards">${timeCards(alarm.time)}</div>
+<div class="alarm-info">
+<div class="alarm-name">${name}</div>
+<div class="alarm-days">${daysHtml}</div>
+</div>
+<div class="alarm-actions">
+<label class="switch">
+<input type="checkbox" class="alarm-toggle" data-id="${esc(alarm.id)}" ${alarm.enabled?"checked":""} aria-label="${esc(T().ringAlarm)} ${esc(alarm.time)}">
+<span class="slider"></span>
+</label>
+<button class="alarm-edit" data-id="${esc(alarm.id)}" aria-label="${esc(T().edit)}" title="${esc(T().edit)}">${ICON_EDIT}</button>
+<button class="alarm-del" data-id="${esc(alarm.id)}" aria-label="${esc(T().del)}" title="${esc(T().del)}">✕</button>
+</div>`;
+alarmList.appendChild(item);
+});
+
+alarmList.querySelectorAll(".alarm-toggle").forEach(cb=>{
+cb.onchange=()=>{
+const a=alarms.find(x=>x.id===cb.dataset.id);
+if(a){
+a.enabled=cb.checked;
+saveAlarms();
+renderAlarmList();
+}
+};
+});
+
+alarmList.querySelectorAll(".alarm-edit").forEach(btn=>{
+btn.onclick=()=>{
+const a=alarms.find(x=>x.id===btn.dataset.id);
+if(a) openAlarmForm(a);
+};
+});
+
+alarmList.querySelectorAll(".alarm-del").forEach(btn=>{
+btn.onclick=()=>{
+alarms=alarms.filter(x=>x.id!==btn.dataset.id);
+if(editingAlarmId===btn.dataset.id) closeAlarmForm();
+saveAlarms();
+renderAlarmList();
+};
+});
+}
+
+// ---- 滚轮选时间 ----
+let pickH=7, pickM=0;
+
+function syncAlarmTime(){
+newAlarmTime.value=pad2(pickH)+":"+pad2(pickM);
+}
+
+const wheelHCtl=makeWheel(wheelH,0,23,pickH,v=>{pickH=v;syncAlarmTime();},34,"unitHour");
+const wheelMCtl=makeWheel(wheelM,0,59,pickM,v=>{pickM=v;syncAlarmTime();},34,"min");
+
+// ---- 添加 / 编辑表单 ----
+function openAlarmForm(alarm){
+editingAlarmId=alarm ? alarm.id : null;
+alarmAddBox.classList.add("open");
+
+// 面板从隐藏变为显示后，需要重新定位滚动位置
+if(alarm){
+const [h,m]=alarm.time.split(":").map(Number);
+wheelHCtl.set(h);
+wheelMCtl.set(m);
+newAlarmLabel.value=alarm.label;
+newAlarmDays=alarm.days.slice();
+}else{
+wheelHCtl.set(pickH);
+wheelMCtl.set(pickM);
+}
+syncWeekdayButtons();
+
+addAlarmBtn.dataset.i18n=alarm ? "saveAlarm" : "confirmAdd";
+addAlarmBtn.textContent=alarm ? T().saveAlarm : T().confirmAdd;
+renderAlarmList();
+}
+
+function closeAlarmForm(){
+editingAlarmId=null;
+alarmAddBox.classList.remove("open");
+newAlarmLabel.value="";
+newAlarmDays=[];
+syncWeekdayButtons();
+addAlarmBtn.dataset.i18n="confirmAdd";
+addAlarmBtn.textContent=T().confirmAdd;
+renderAlarmList();
+}
+
+alarmAddToggle.onclick=()=>{
+if(alarmAddBox.classList.contains("open")) closeAlarmForm();
+else openAlarmForm(null);
+};
+
+addAlarmBtn.onclick=()=>{
+unlockAudio();
+if(!newAlarmTime.value) return;
+
+if(editingAlarmId){
+const a=alarms.find(x=>x.id===editingAlarmId);
+if(a){
+a.time=newAlarmTime.value;
+a.days=newAlarmDays.slice();
+a.label=newAlarmLabel.value.trim();
+a.enabled=true;
+}
+}else{
+alarms.push({
+id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+time:newAlarmTime.value,
+days:newAlarmDays.slice(),
+label:newAlarmLabel.value.trim(),
+enabled:true
+});
+}
+saveAlarms();
+closeAlarmForm();
+};
+
+// ---- 顶部大号「下一个闹钟」 ----
+function nextOccurrence(alarm,now){
+const [hh,mm]=alarm.time.split(":").map(Number);
+for(let d=0;d<=7;d++){
+const t=new Date(now.getFullYear(),now.getMonth(),now.getDate()+d,hh,mm,0,0);
+if(t<=now) continue;
+if(alarm.days.length===0 || alarm.days.includes(t.getDay())) return t;
+}
+return null;
+}
+
+function untilText(ms){
+const total=Math.max(1,Math.ceil(ms/60000));
+const d=Math.floor(total/1440);
+const h=Math.floor((total%1440)/60);
+const m=total%60;
+const t=T();
+if(d>0) return fmt(t.untilD,{d,h});
+if(h>0) return fmt(t.untilH,{h,m});
+return fmt(t.untilM,{m});
+}
+
+function updateNextAlarm(){
+const now=new Date();
+let best=null, bestAlarm=null;
+
+alarms.forEach(a=>{
+if(!a.enabled) return;
+const t=nextOccurrence(a,now);
+if(t && (!best || t<best)){ best=t; bestAlarm=a; }
+});
+
+let str, sub;
+if(best){
+str=bestAlarm.time.replace(":","");
+sub=fmt(T().nextSub,{name:bestAlarm.label||T().ringAlarm,t:untilText(best-now)});
+}else{
+str="----";
+sub=T().noActive;
+}
+
+nextBox.classList.toggle("none",!best);
+str.split("").forEach((v,i)=>nextAlarmDigits[i].set(v));
+nextAlarmSub.textContent=sub;
+}
+
+// ---- 响铃 ----
+function ringForAlarm(alarm,lateMin){
+let sub=alarm.label ? alarm.time+" · "+alarm.label : alarm.time;
+if(lateMin>=2) sub+=" · "+fmt(T().lateBy,{n:lateMin});
+showRing(T().ringAlarm,sub,null,{
+snooze:()=>snoozes.push({at:Date.now()+SNOOZE_MS,alarm})
+});
+}
+
+function checkAlarms(){
+const nowMs=Date.now();
+updateNextAlarm();
+
+// 从上次检查的时间补查到现在：浏览器限速、电脑短暂休眠都不会漏掉（最多补查 15 分钟）
+let from=lastAlarmCheck ? Math.max(lastAlarmCheck,nowMs-CATCHUP_MS) : nowMs;
+if(nowMs<lastAlarmCheck) from=nowMs;     // 系统时间被往回调过
+lastAlarmCheck=nowMs;
+
+const startMin=Math.floor(from/60000)*60000;
+const endMin=Math.floor(nowMs/60000)*60000;
+
+for(let t=startMin;t<=endMin;t+=60000){
+const d=new Date(t);
+const hhmm=pad2(d.getHours())+":"+pad2(d.getMinutes());
+const day=d.getDay();
+
+alarms.forEach(alarm=>{
+if(!alarm.enabled || alarm.time!==hhmm) return;
+if(alarm.days.length>0 && !alarm.days.includes(day)) return;
+
+const key=alarm.id+"@"+t;
+if(alarmFired.has(key)) return;
+alarmFired.add(key);
+
+ringForAlarm(alarm,Math.round((nowMs-t)/60000));
+
+// 仅一次的闹钟响完自动关闭
+if(alarm.days.length===0){
+alarm.enabled=false;
+saveAlarms();
+renderAlarmList();
+}
+});
+}
+
+alarmFired.forEach(k=>{
+if(Number(k.split("@")[1])<nowMs-3600000) alarmFired.delete(k);
+});
+
+// 稍后提醒到点
+snoozes=snoozes.filter(s=>{
+if(s.at<=nowMs){
+ringForAlarm(s.alarm,0);
+return false;
+}
+return true;
+});
+}
+
+// 切回前台时马上补查一次
+document.addEventListener("visibilitychange",()=>{
+if(document.visibilityState==="visible") checkAlarms();
+});
+
+
+// =====================================================
+// 番茄钟（运行状态会保存；每 N 轮长休；可跳过阶段）
+// =====================================================
+const pomoSaved=loadJSON("flipClockPomodoro",{});
+const pomoState=loadJSON("flipClockPomoState",{});
+
+let pomodoroWork=num(pomoSaved.work,1,99,25);
+let pomodoroBreak=num(pomoSaved.brk,1,99,5);
+let pomodoroLongBreak=num(pomoSaved.longBrk,1,99,15);
+let pomodoroRounds=num(pomoSaved.rounds,1,10,4);
+
+let pomodoroPhaseType=["work","break","longBreak"].includes(pomoState.phase) ? pomoState.phase : "work";
+let pomodoroCyclesDone=num(pomoState.cycles,0,9999,0);
+let pomodoroRunning=false;
+let pomodoroTickId=null;
+let pomodoroEndTime=0;
+let pomodoroRemaining=0;
+
+function savePomodoroSettings(){
+saveJSON("flipClockPomodoro",{work:pomodoroWork,brk:pomodoroBreak,longBrk:pomodoroLongBreak,rounds:pomodoroRounds});
+}
+
+function savePomodoroState(){
+saveJSON("flipClockPomoState",{
+phase:pomodoroPhaseType,cycles:pomodoroCyclesDone,running:pomodoroRunning,end:pomodoroEndTime,rem:pomodoroRemaining
+});
+}
+
+function pomodoroPhaseSeconds(){
+if(pomodoroPhaseType==="work") return pomodoroWork*60;
+if(pomodoroPhaseType==="break") return pomodoroBreak*60;
+return pomodoroLongBreak*60;
+}
+
+function pomodoroPhaseInfo(type){
+if(type==="work") return {text:T().phaseWork,cls:"work"};
+if(type==="break") return {text:T().phaseShort,cls:"rest"};
+return {text:T().phaseLong,cls:"rest"};
+}
+
+function pomoSync(){
+pomodoroSkipBtn.disabled=!(pomodoroRunning || pomodoroRemaining>0);    // 阶段已经开始才能跳过
+}
+
+function renderPomodoroDots(){
+const n=pomodoroRounds;
+if(pomodoroDots.children.length!==n){
+pomodoroDots.innerHTML="";
+for(let i=0;i<n;i++){
+const d=document.createElement("span");
+d.className="pomo-dot";
+pomodoroDots.appendChild(d);
+}
+}
+// 工作阶段：当前轮 = 已完成数；休息阶段：仍属于刚完成的那一轮
+const cur=pomodoroPhaseType==="work"
+? pomodoroCyclesDone%n
+: ((Math.max(1,pomodoroCyclesDone)-1)%n+n)%n;
+[...pomodoroDots.children].forEach((d,i)=>{
+d.classList.toggle("done",i<cur);
+d.classList.toggle("cur",i===cur);
+});
+pomodoroDots.classList.toggle("running",pomodoroRunning);
+}
+
+function refreshPomodoroLabel(){
+const info=pomodoroPhaseInfo(pomodoroPhaseType);
+pomodoroPhase.textContent=info.text;
+pomodoroPhase.className="phase-label "+info.cls;
+pomodoroCount.textContent=fmt(T().cycles,{n:pomodoroCyclesDone});
+renderPomodoroDots();
+pomoSync();
+}
+
+function updatePomodoroPreview(){
+if(!pomodoroRunning && pomodoroRemaining===0){
+renderTime(pomodoroDigits,pomodoroPhaseSeconds());
+}
+}
+
+function setPomodoroInputsDisabled(v){
+pomodoroWheels.classList.toggle("disabled",v);
+}
+
+const wheelPWCtl=makeWheel(wheelPW,1,99,pomodoroWork,v=>{pomodoroWork=v;savePomodoroSettings();updatePomodoroPreview();},28,"work");
+const wheelPBCtl=makeWheel(wheelPB,1,99,pomodoroBreak,v=>{pomodoroBreak=v;savePomodoroSettings();updatePomodoroPreview();},28,"shortBreak");
+const wheelPLCtl=makeWheel(wheelPL,1,99,pomodoroLongBreak,v=>{pomodoroLongBreak=v;savePomodoroSettings();updatePomodoroPreview();},28,"longBreak");
+const wheelPRCtl=makeWheel(wheelPR,1,10,pomodoroRounds,v=>{pomodoroRounds=v;savePomodoroSettings();renderPomodoroDots();},28,"rounds");
+
+function stopPomodoroInterval(){
+if(pomodoroTickId!==null){ clearTick(pomodoroTickId); pomodoroTickId=null; }
+pomodoroRunning=false;
+renderPomodoroDots();
+pomoSync();
+}
+
+function startPomodoroInternal(){
+const seconds=pomodoroRemaining>0 ? pomodoroRemaining : pomodoroPhaseSeconds();
+pomodoroEndTime=Date.now()+seconds*1000;
+pomodoroRemaining=0;
+pomodoroRunning=true;
+renderPomodoroDots();
+pomoSync();
+setPomodoroInputsDisabled(true);
+pomodoroTickId=setTick(tickPomodoro,250);
+tickPomodoro();
+savePomodoroState();
+}
+
+// 进入下一阶段（工作 -> 短休/长休 -> 工作）；返回刚结束的阶段
+function advancePomodoroPhase(){
+const finished=pomodoroPhaseType;
+if(finished==="work"){
+pomodoroCyclesDone++;
+// 每完成 N 个番茄（N = 轮次），下一次休息是长休息
+pomodoroPhaseType=(pomodoroCyclesDone%pomodoroRounds===0) ? "longBreak" : "break";
+}else{
+pomodoroPhaseType="work";
+}
+pomodoroRemaining=0;
+refreshPomodoroLabel();
+return finished;
+}
+
+function tickPomodoro(){
+const remaining=Math.ceil((pomodoroEndTime-Date.now())/1000);
+if(remaining>0){
+renderTime(pomodoroDigits,remaining);
+return;
+}
+
+renderTime(pomodoroDigits,0);
+stopPomodoroInterval();
+
+const finished=advancePomodoroPhase();
+pomodoroEndTime=0;
+savePomodoroState();
+
+const nextText=pomodoroPhaseInfo(pomodoroPhaseType).text;
+showRing(
+finished==="work" ? T().ringWorkDone : T().ringBreakDone,
+fmt(T().ringNext,{x:nextText}),
+()=>startPomodoroInternal()      // 点停止（或响满 60 秒）后自动进入下一阶段
+);
+}
+
+pomodoroStartBtn.onclick=()=>{
+if(pomodoroRunning) return;
+unlockAudio();
+startPomodoroInternal();
+};
+
+pomodoroPauseBtn.onclick=()=>{
+if(!pomodoroRunning) return;
+pomodoroRemaining=Math.max(1,Math.ceil((pomodoroEndTime-Date.now())/1000));
+stopPomodoroInterval();
+savePomodoroState();
+};
+
+// 跳过：直接结束当前阶段，进入下一阶段（跳过工作阶段也算完成一个番茄）
+pomodoroSkipBtn.onclick=()=>{
+if(!(pomodoroRunning || pomodoroRemaining>0)) return;
+const wasRunning=pomodoroRunning;
+stopPomodoroInterval();
+advancePomodoroPhase();
+renderTime(pomodoroDigits,pomodoroPhaseSeconds());
+if(wasRunning){
+startPomodoroInternal();
+}else{
+setPomodoroInputsDisabled(false);
+savePomodoroState();
+}
+};
+
+pomodoroResetBtn.onclick=()=>{
+stopPomodoroInterval();
+pomodoroRemaining=0;
+pomodoroEndTime=0;
+pomodoroPhaseType="work";
+pomodoroCyclesDone=0;
+setPomodoroInputsDisabled(false);
+refreshPomodoroLabel();
+renderTime(pomodoroDigits,pomodoroPhaseSeconds());
+savePomodoroState();
+};
+
+// 刷新后恢复
+(function restorePomodoro(){
+refreshPomodoroLabel();
+if(pomoState.running && Number(pomoState.end)>0){
+pomodoroEndTime=Number(pomoState.end);
+pomodoroRunning=true;
+setPomodoroInputsDisabled(true);
+pomodoroTickId=setTick(tickPomodoro,250);
+tickPomodoro();        // 如果离开期间已经结束，会直接进入下一阶段并提醒
+}else if(Number(pomoState.rem)>0){
+pomodoroRemaining=Math.floor(Number(pomoState.rem));
+setPomodoroInputsDisabled(true);
+renderTime(pomodoroDigits,pomodoroRemaining);
+refreshPomodoroLabel();
+}else{
+renderTime(pomodoroDigits,pomodoroPhaseSeconds());
+}
+})();
+
+
+
+
+// =====================================================
+// 世界时钟（60+ 个城市；各城市当地时间 / 日期 / 昨天今天明天 / UTC 偏移；会议规划）
+// =====================================================
+// 城市：[id, IANA 时区, 分区, 中文名, 英文名]
+const WORLD_CITIES=[
+// 美洲
+["nyc","America/New_York","americas","纽约","New York"],
+["la","America/Los_Angeles","americas","洛杉矶","Los Angeles"],
+["chi","America/Chicago","americas","芝加哥","Chicago"],
+["den","America/Denver","americas","丹佛","Denver"],
+["anc","America/Anchorage","americas","安克雷奇","Anchorage"],
+["hnl","Pacific/Honolulu","americas","檀香山","Honolulu"],
+["tor","America/Toronto","americas","多伦多","Toronto"],
+["yvr","America/Vancouver","americas","温哥华","Vancouver"],
+["mex","America/Mexico_City","americas","墨西哥城","Mexico City"],
+["bog","America/Bogota","americas","波哥大","Bogotá"],
+["lim","America/Lima","americas","利马","Lima"],
+["scl","America/Santiago","americas","圣地亚哥","Santiago"],
+["eze","America/Argentina/Buenos_Aires","americas","布宜诺斯艾利斯","Buenos Aires"],
+["gru","America/Sao_Paulo","americas","圣保罗","São Paulo"],
+// 欧洲
+["lon","Europe/London","europe","伦敦","London"],
+["dub","Europe/Dublin","europe","都柏林","Dublin"],
+["lis","Europe/Lisbon","europe","里斯本","Lisbon"],
+["par","Europe/Paris","europe","巴黎","Paris"],
+["ber","Europe/Berlin","europe","柏林","Berlin"],
+["mad","Europe/Madrid","europe","马德里","Madrid"],
+["rom","Europe/Rome","europe","罗马","Rome"],
+["ams","Europe/Amsterdam","europe","阿姆斯特丹","Amsterdam"],
+["zrh","Europe/Zurich","europe","苏黎世","Zurich"],
+["sto","Europe/Stockholm","europe","斯德哥尔摩","Stockholm"],
+["ath","Europe/Athens","europe","雅典","Athens"],
+["hel","Europe/Helsinki","europe","赫尔辛基","Helsinki"],
+["ist","Europe/Istanbul","europe","伊斯坦布尔","Istanbul"],
+["mow","Europe/Moscow","europe","莫斯科","Moscow"],
+["rey","Atlantic/Reykjavik","europe","雷克雅未克","Reykjavik"],
+// 中东与非洲
+["dxb","Asia/Dubai","mea","迪拜","Dubai"],
+["ruh","Asia/Riyadh","mea","利雅得","Riyadh"],
+["thr","Asia/Tehran","mea","德黑兰","Tehran"],
+["jrs","Asia/Jerusalem","mea","耶路撒冷","Jerusalem"],
+["cai","Africa/Cairo","mea","开罗","Cairo"],
+["los","Africa/Lagos","mea","拉各斯","Lagos"],
+["nbo","Africa/Nairobi","mea","内罗毕","Nairobi"],
+["jnb","Africa/Johannesburg","mea","约翰内斯堡","Johannesburg"],
+["cmn","Africa/Casablanca","mea","卡萨布兰卡","Casablanca"],
+// 亚洲
+["bjs","Asia/Shanghai","asia","北京","Beijing"],
+["hkg","Asia/Hong_Kong","asia","香港","Hong Kong"],
+["tpe","Asia/Taipei","asia","台北","Taipei"],
+["tyo","Asia/Tokyo","asia","东京","Tokyo"],
+["sel","Asia/Seoul","asia","首尔","Seoul"],
+["sin","Asia/Singapore","asia","新加坡","Singapore"],
+["bkk","Asia/Bangkok","asia","曼谷","Bangkok"],
+["sgn","Asia/Ho_Chi_Minh","asia","胡志明市","Ho Chi Minh City"],
+["han","Asia/Ho_Chi_Minh","asia","河内","Hanoi"],
+["jkt","Asia/Jakarta","asia","雅加达","Jakarta"],
+["mnl","Asia/Manila","asia","马尼拉","Manila"],
+["kul","Asia/Kuala_Lumpur","asia","吉隆坡","Kuala Lumpur"],
+["del","Asia/Kolkata","asia","新德里","New Delhi"],
+["khi","Asia/Karachi","asia","卡拉奇","Karachi"],
+["dac","Asia/Dhaka","asia","达卡","Dhaka"],
+["ktm","Asia/Kathmandu","asia","加德满都","Kathmandu"],
+["ala","Asia/Almaty","asia","阿拉木图","Almaty"],
+// 大洋洲
+["syd","Australia/Sydney","oceania","悉尼","Sydney"],
+["mel","Australia/Melbourne","oceania","墨尔本","Melbourne"],
+["bne","Australia/Brisbane","oceania","布里斯班","Brisbane"],
+["per","Australia/Perth","oceania","珀斯","Perth"],
+["adl","Australia/Adelaide","oceania","阿德莱德","Adelaide"],
+["akl","Pacific/Auckland","oceania","奥克兰","Auckland"],
+["suv","Pacific/Fiji","oceania","苏瓦","Suva"],
+["gum","Pacific/Guam","oceania","关岛","Guam"]
+].map(a=>({id:a[0],zone:a[1],region:a[2],zh:a[3],en:a[4]}));
+
+const WORLD_BY_ID={};
+WORLD_CITIES.forEach(c=>WORLD_BY_ID[c.id]=c);
+
+const WORLD_REGIONS=[
+{key:"americas",label:"regAmericas"},
+{key:"europe",label:"regEurope"},
+{key:"mea",label:"regMea"},
+{key:"asia",label:"regAsia"},
+{key:"oceania",label:"regOceania"}
+];
+
+Object.assign(langText.zh,{
+mWorld:"世界时钟",worldYour:"你的时间",worldMeeting:"会议时间（你的时区）",
+worldLive:"实时",worldPlan:"会议规划",addCity:"添加城市",cityTitle:"选择城市",searchCity:"搜索城市",
+planHint:"选一个你所在时区的时间，下面显示各城市的对应时间",
+dayYesterday:"昨天",dayToday:"今天",dayTomorrow:"明天",
+regAmericas:"美洲",regEurope:"欧洲",regMea:"中东与非洲",regAsia:"亚洲",regOceania:"大洋洲",
+noCities:"还没有城市，点上面的「添加城市」",noMatch:"没有找到匹配的城市",closeLabel:"关闭"
+});
+
+Object.assign(langText.en,{
+mWorld:"World clock",worldYour:"Your time",worldMeeting:"Meeting time (your time zone)",
+worldLive:"Live",worldPlan:"Meeting planner",addCity:"Add city",cityTitle:"Choose cities",searchCity:"Search cities",
+planHint:"Pick a time in your own time zone to see the same moment in each city",
+dayYesterday:"Yesterday",dayToday:"Today",dayTomorrow:"Tomorrow",
+regAmericas:"Americas",regEurope:"Europe",regMea:"Middle East & Africa",regAsia:"Asia",regOceania:"Oceania",
+noCities:"No cities yet. Use “Add city” above.",noMatch:"No matching cities",closeLabel:"Close"
+});
+
+Object.assign(langText.zh,{
+mapLabel:"昼夜分布图：亮点是白天的陆地，暗点是夜晚，白色圆点是已选城市"
+});
+
+Object.assign(langText.en,{
+mapLabel:"Day and night map: bright dots are daylit land, dim dots are night, white markers are your cities"
+});
+
+let OWN_ZONE="UTC";
+try{ OWN_ZONE=Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"; }catch(e){}
+
+const worldSaved=loadJSON("flipClockWorld",{});
+let worldCities=Array.isArray(worldSaved.cities)
+? worldSaved.cities.filter(id=>WORLD_BY_ID[id])
+: ["nyc","lon","tyo","syd"];
+let worldPlan=false;
+const nowInit=new Date();
+let planH=nowInit.getHours(), planM=nowInit.getMinutes();
+let worldSig="";
+
+function saveWorld(){
+saveJSON("flipClockWorld",{cities:worldCities});
+}
+
+// ---- 时区计算：全部交给浏览器自带的时区数据，夏令时自动处理 ----
+const zoneFmtCache={};
+
+function zoneParts(zone,ms){
+let f=zoneFmtCache[zone];
+if(!f){
+f=zoneFmtCache[zone]=new Intl.DateTimeFormat("en-US",{
+timeZone:zone,hourCycle:"h23",
+year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"
+});
+}
+const o={};
+f.formatToParts(ms).forEach(p=>o[p.type]=p.value);
+return {y:+o.year,mo:+o.month,d:+o.day,h:(+o.hour)%24,mi:+o.minute,s:+o.second};
+}
+
+function zoneOffsetMin(zone,ms){
+const p=zoneParts(zone,ms);
+const asUTC=Date.UTC(p.y,p.mo-1,p.d,p.h,p.mi,p.s);
+return Math.round((asUTC-Math.floor(ms/1000)*1000)/60000);
+}
+
+function fmtOffset(min){
+const sign=min<0 ? "-" : "+";
+const a=Math.abs(min);
+const h=Math.floor(a/60), m=a%60;
+return "UTC"+sign+h+(m ? ":"+pad2(m) : "");
+}
+
+function dayDiff(c,o){
+return Math.round((Date.UTC(c.y,c.mo-1,c.d)-Date.UTC(o.y,o.mo-1,o.d))/86400000);
+}
+
+const cityDateFmt={};
+
+function cityDateText(zone,ms){
+const loc=lang==="zh" ? "zh-CN" : "en-US";
+const key=zone+"|"+loc;
+if(!cityDateFmt[key]){
+cityDateFmt[key]=new Intl.DateTimeFormat(loc,{timeZone:zone,month:"short",day:"numeric",weekday:"short"});
+}
+return cityDateFmt[key].format(ms);
+}
+
+function cityName(c){
+return lang==="zh" ? c.zh : c.en;
+}
+
+function ownZoneName(){
+const c=WORLD_CITIES.find(x=>x.zone===OWN_ZONE);
+return c ? cityName(c) : OWN_ZONE.replace(/_/g," ");
+}
+
+const ICON_SUN='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>';
+const ICON_MOON='<svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>';
+
+// ---- 昼夜分布图：点阵世界地图（陆地数据内嵌，无需联网），按太阳位置把夜晚一侧调暗 ----
+const MAP_COLS=180, MAP_ROWS=72, MAP_LAT0=83;          // 每格 2°，第一行中心纬度 83°N
+const MAP_B64="AAAAAAAB/+Af/AAAAAAAAAAAAAAAAAAAAAAAA//////+AAHgAAAADgAAAAAAAAAAAAN//////4AB/gAAAAB8AAAAAAAAAAB7Cz4////wAAZAAAMAAPwAAAAAAAAACPm/wAf//wAAAAADwAf/4AHIAAAAAAH+n38AP//gAAAAAOBD///8DwAAgH4ACf73/gP//gAAA4AMHf//////wAgf////79nwH//AAAP/gL//////////8f//////h+H/gAAAf/7///////////c///////n8D8A+AB+/////////////Af/////508D4AIAH9/////////////Af/////gHgB4AAAP5///////////v4AHoP///gH2AAAAAH4//////////+MAADQB///8H+AAAAGCx/////////8A8AAMAA////v/gAAAPDv/////////wA4AAAABf///v/wAAAbv///////////AwAAAAAP/////wAAAH////////////AAAAAAAH////8YAAAD///////////9AAAAAAAD////+cAAAB///////////9AAAAAAAD/////AAAAB//5ff//////5AAAAAAAD////gAAAAf5vwPP//////jAAAAAAAD////gAAAAfi///n/////+CAAAAAAAD///+AAAAAfALf/n////+MCAAAAAAAB///8AAAAAOeRP///////mOAAAAAAAB///8AAAAAH+AC///////G8AAAAAAAAf//4AAAAAf/iB///////hgAAAAAAAAP//wAAAAAf/7////////gAAAAAAAAAP/gwAAAAA/////f/////gAAAAAAAAAF/AQAAAAB///+/v/////AAAAAAAAAAC+AAAAAAD/////1/////gAAAAAAAAAAeA4AAAAD////f/D///8gAAAAAAAAAAfGOAAAAH////v/B/z/wAAAAAAAgAAAfcBgAAAD////v+A/h+gAAAAAAAAAAAH8AAAAAD////34A+B/AgAAAAAAAAAAAfAAAAAH/////wAcAfggAAAAAAAAAAAHgAAAAH////+AAcAfgQAAAAAAAAAAABD4AAAD/////wAMAXgYAAAAAAAAAAAA//AAAB/////gAKASAYAAAAAAAAAAAAH/gAAA/////gACAIAIAAAAAAAAAAAAH/8AAAfP///AAAAsGAAAAAAAAAAAAAH/+AAAAB///AAAA8OAAAAAAAAAAAAAP/+AAAAD//8AAAAc+kAAAAAAAAAAAAf//gAAAD//4AAAAMfggAAAAAAAAAAAP//8AAAB//wAAAAGdi/AAAAAAAAAAAf///AAAA//wAAAACAgPkAAAAAAAAAAP///gAAA//wAAAAB4AHwAAAAAAAAAAP///gAAA//wAAAAAIIDYAAAAAAAAAAH///AAAAf/wAAAAAAAAAAAAAAAAAAAH//+AAAA//4gAAAAABxAAAAAAAAAAAD//+AAAA//xgAAAAAPxgAAAAAAAAAAA//+AAAA//zgAAAAAf/gAAAAAAAAAAAf/8AAAA//DgAAAAA//wAAAAAAAAAAAf/8AAAAf/DAAAAAD//4CAAAAAAAAAAf/4AAAAf/DAAAAAH//8AAAAAAAAAAA//AAAAAf+DAAAAAH//8AAAAAAAAAAA//AAAAAf+AAAAAAH//+AAAAAAAAAAA//AAAAAP8AAAAAAH//+AAAAAAAAAAA/+AAAAAH4AAAAAAD//+AAAAAAAAAAA/8AAAAAHwAAAAAAD4f8AAAAAAAAAAA/4AAAAAAAAAAAAACAH8AAAAAAAAAAB/wAAAAAAAAAAAAAAAD4AEAAAAAAAAB/gAAAAAAAAAAAAAAABQAGAAAAAAAAB+AAAAAAAAAAAAAAAAAwAMAAAAAAAAB8AAAAAAAAAAAAAAAAAQAYAAAAAAAAD4AAAAAAAAAAAAAAAAAABwAAAAAAAAD4AAAAAAAAAAAAAAAAAAAgAAAAAAAAD4AAAAAAAAAACAAAAAAAAAAAAAAAAADwgAAAAAAAAAAAAAAAAAAAAAAAAAAABwAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+
+const MAP_LAND=(()=>{
+const bin=atob(MAP_B64);
+const a=new Uint8Array(bin.length);
+for(let i=0;i<bin.length;i++) a[i]=bin.charCodeAt(i);
+return a;
+})();
+
+function mapIsLand(r,c){
+const i=r*MAP_COLS+c;
+return (MAP_LAND[i>>3]>>(7-(i&7)))&1;
+}
+
+// 城市经纬度 [纬度, 经度]
+const WORLD_COORDS={
+nyc:[40.71,-74.01],la:[34.05,-118.24],chi:[41.88,-87.63],den:[39.74,-104.99],anc:[61.22,-149.90],hnl:[21.31,-157.86],
+tor:[43.65,-79.38],yvr:[49.28,-123.12],mex:[19.43,-99.13],bog:[4.71,-74.07],lim:[-12.05,-77.04],scl:[-33.45,-70.67],
+eze:[-34.60,-58.38],gru:[-23.55,-46.63],
+lon:[51.51,-0.13],dub:[53.35,-6.26],lis:[38.72,-9.14],par:[48.86,2.35],ber:[52.52,13.40],mad:[40.42,-3.70],
+rom:[41.90,12.50],ams:[52.37,4.90],zrh:[47.38,8.54],sto:[59.33,18.07],ath:[37.98,23.73],hel:[60.17,24.94],
+ist:[41.01,28.98],mow:[55.76,37.62],rey:[64.15,-21.94],
+dxb:[25.20,55.27],ruh:[24.71,46.68],thr:[35.69,51.39],jrs:[31.77,35.21],cai:[30.04,31.24],los:[6.52,3.38],
+nbo:[-1.29,36.82],jnb:[-26.20,28.05],cmn:[33.57,-7.59],
+bjs:[39.90,116.41],hkg:[22.32,114.17],tpe:[25.03,121.57],tyo:[35.68,139.69],sel:[37.57,126.98],sin:[1.35,103.82],
+bkk:[13.76,100.50],sgn:[10.82,106.63],han:[21.03,105.85],jkt:[-6.21,106.85],mnl:[14.60,120.98],kul:[3.14,101.69],
+del:[28.61,77.21],khi:[24.86,67.01],dac:[23.81,90.41],ktm:[27.72,85.32],ala:[43.24,76.89],
+syd:[-33.87,151.21],mel:[-37.81,144.96],bne:[-27.47,153.03],per:[-31.95,115.86],adl:[-34.93,138.60],
+akl:[-36.85,174.76],suv:[-18.14,178.44],gum:[13.44,144.79]
+};
+
+// 太阳直射点（赤纬、经度），精度约 1°，画地图足够
+function sunPos(ms){
+const rad=Math.PI/180;
+const d=ms/86400000+2440587.5-2451545.0;                        // 距 J2000 的天数
+const g=((357.529+0.98560028*d)%360)*rad;
+const q=(280.459+0.98564736*d)%360;
+const L=(q+1.915*Math.sin(g)+0.020*Math.sin(2*g))*rad;
+const e=(23.439-0.00000036*d)*rad;
+const ra=Math.atan2(Math.cos(e)*Math.sin(L),Math.cos(L));
+const dec=Math.asin(Math.sin(e)*Math.sin(L));
+const gmst=((280.46061837+360.98564736629*d)%360)*rad;
+let lon=ra-gmst;
+lon=Math.atan2(Math.sin(lon),Math.cos(lon));                   // 归一到 [-π, π]
+return {dec,lon};
+}
+
+let mapKey="";
+
+function drawWorldMap(ms){
+const cv=worldMap;
+const avail=cv.parentElement.clientWidth-20;
+if(avail<=0) return;
+const cssW=Math.min(avail,520);
+const cssH=cssW*MAP_ROWS/MAP_COLS;
+const dpr=window.devicePixelRatio||1;
+
+cv.style.width=cssW+"px";
+cv.style.height=cssH+"px";
+cv.width=Math.round(cssW*dpr);
+cv.height=Math.round(cssH*dpr);
+
+const g=cv.getContext("2d");
+g.setTransform(dpr,0,0,dpr,0,0);
+g.clearRect(0,0,cssW,cssH);
+
+const rad=Math.PI/180;
+const cell=cssW/MAP_COLS;
+const sun=sunPos(ms);
+const sd=Math.sin(sun.dec), cd=Math.cos(sun.dec);
+
+for(let r=0;r<MAP_ROWS;r++){
+const phi=(MAP_LAT0-2*r)*rad;
+const sp=Math.sin(phi)*sd, cp=Math.cos(phi)*cd;
+const y=(r+0.5)*cell;
+
+for(let c=0;c<MAP_COLS;c++){
+const lam=(-179+2*c)*rad;
+const elev=Math.asin(Math.max(-1,Math.min(1,sp+cp*Math.cos(lam-sun.lon))))/rad;
+const t=Math.max(0,Math.min(1,(elev+6)/12));                  // 日出日落前后 6° 之内平滑过渡
+
+let level, radius;
+if(mapIsLand(r,c)){
+level=Math.round(70+(210-70)*t);
+radius=cell*0.4;
+}else{
+level=Math.round(22+(52-22)*t);
+radius=cell*0.15;
+}
+g.fillStyle="rgb("+level+","+level+","+level+")";
+g.beginPath();
+g.arc((c+0.5)*cell,y,radius,0,6.2832);
+g.fill();
+}
+}
+
+// 已选城市的白色标记
+worldCities.forEach(id=>{
+const co=WORLD_COORDS[id];
+if(!co) return;
+const x=(co[1]+180)/360*cssW;
+const y=((MAP_LAT0-co[0])/2+0.5)*cell;
+if(y<0 || y>cssH) return;
+
+g.strokeStyle="rgba(255,255,255,0.7)";
+g.lineWidth=1;
+g.beginPath();
+g.arc(x,y,Math.max(4,cell*1.9),0,6.2832);
+g.stroke();
+
+g.fillStyle="#fff";
+g.beginPath();
+g.arc(x,y,Math.max(2,cell*0.9),0,6.2832);
+g.fill();
+});
+}
+
+// 一分钟内太阳只移动 0.25°，没必要每秒重画；选了城市、改了窗口大小才强制重画
+function drawWorldMapIfNeeded(ms,force){
+const key=Math.floor(ms/60000)+"|"+worldCities.join(",");
+if(!force && key===mapKey) return;
+mapKey=key;
+drawWorldMap(ms);
+}
+
+window.addEventListener("resize",()=>renderWorld(true));
+
+const worldDigits=buildFlipDisplay(worldDisplay);
+
+function renderWorld(force){
+let ms;
+if(worldPlan){
+const n=new Date();
+ms=new Date(n.getFullYear(),n.getMonth(),n.getDate(),planH,planM,0,0).getTime();   // 会议时间：今天，你所在时区
+}else{
+ms=Date.now();
+}
+
+const own=zoneParts(OWN_ZONE,ms);
+drawWorldMapIfNeeded(ms,force);
+
+// ---- 上方大号：你的时间 ----
+let h=own.h, suffix="";
+if(!is24Hour){
+suffix=h>=12 ? "PM" : "AM";
+h=h%12||12;
+}
+(pad2(h)+pad2(own.mi)).split("").forEach((v,i)=>worldDigits[i].set(v));
+
+const wk=T().week[new Date(Date.UTC(own.y,own.mo-1,own.d)).getUTCDay()];
+const ownDate=lang==="zh"
+? `${own.y}年${own.mo}月${own.d}日 星期${wk}`
+: `${own.y}-${pad2(own.mo)}-${pad2(own.d)} ${wk}`;
+worldTopLabel.textContent=worldPlan ? T().worldMeeting : T().worldYour;
+worldTopSub.textContent=[suffix,ownDate,fmtOffset(zoneOffsetMin(OWN_ZONE,ms)),ownZoneName()].filter(Boolean).join(" · ");
+
+// ---- 城市列表 ----
+let html="";
+if(worldCities.length===0){
+html=`<div class="alarm-empty">${esc(T().noCities)}</div>`;
+}else{
+worldCities.forEach(id=>{
+const c=WORLD_BY_ID[id];
+let p;
+try{ p=zoneParts(c.zone,ms); }catch(e){ return; }
+
+let ch=p.h, cs="";
+if(!is24Hour){
+cs=ch>=12 ? "PM" : "AM";
+ch=ch%12||12;
+}
+
+const diff=dayDiff(p,own);
+const badge=diff===0 ? T().dayToday : diff<0 ? T().dayYesterday : T().dayTomorrow;
+const icon=(p.h>=6 && p.h<18) ? ICON_SUN : ICON_MOON;
+
+html+=`<div class="world-row">
+<span class="world-ico">${icon}</span>
+<div class="world-name">
+<div class="wn">${esc(cityName(c))}</div>
+<div class="ws">${esc(cityDateText(c.zone,ms))} · ${fmtOffset(zoneOffsetMin(c.zone,ms))}</div>
+</div>
+<div class="world-time"><div class="alarm-cards">${timeCards(pad2(ch)+":"+pad2(p.mi))}</div><span class="ampm-s">${cs}</span></div>
+<span class="world-badge${diff!==0?" off":""}">${esc(badge)}</span>
+<button class="alarm-del world-del idle-hide" data-id="${c.id}" aria-label="${esc(T().del)}" title="${esc(T().del)}">✕</button>
+</div>`;
+});
+}
+
+if(force || html!==worldSig){
+worldList.innerHTML=html;
+worldSig=html;
+}
+}
+
+// 点城市行的 ✕ 删除
+worldList.addEventListener("click",e=>{
+const btn=e.target.closest(".world-del");
+if(!btn) return;
+worldCities=worldCities.filter(id=>id!==btn.dataset.id);
+saveWorld();
+renderWorld(true);
+renderCityPicker();
+});
+
+// ---- 实时 / 会议规划 ----
+const wheelWHCtl=makeWheel(wheelWH,0,23,planH,v=>{planH=v;renderWorld(false);},28,"unitHour");
+const wheelWMCtl=makeWheel(wheelWM,0,59,planM,v=>{planM=v;renderWorld(false);},28,"min");
+
+function setWorldMode(plan){
+worldPlan=plan;
+worldWrapper.classList.toggle("planning",plan);
+worldLiveBtn.classList.toggle("active",!plan);
+worldPlanBtn.classList.toggle("active",plan);
+worldLiveBtn.setAttribute("aria-pressed",String(!plan));
+worldPlanBtn.setAttribute("aria-pressed",String(plan));
+worldPlanBox.style.display=plan ? "" : "none";
+
+if(plan){
+const n=new Date();
+wheelWHCtl.set(n.getHours());      // 面板刚显示出来，需要重新定位滚轮
+wheelWMCtl.set(n.getMinutes());
+}
+renderWorld(true);
+applyScale();
+worldWrapper.scrollTop=0;
+}
+
+worldLiveBtn.onclick=()=>setWorldMode(false);
+worldPlanBtn.onclick=()=>setWorldMode(true);
+
+// ---- 城市选择面板 ----
+function renderCityPicker(){
+const q=citySearch.value.trim().toLowerCase();
+let html="";
+let any=false;
+
+WORLD_REGIONS.forEach(r=>{
+const list=WORLD_CITIES.filter(c=>c.region===r.key && (!q || c.zh.includes(q) || c.en.toLowerCase().includes(q) || c.zone.toLowerCase().includes(q)));
+if(!list.length) return;
+any=true;
+html+=`<div><div class="city-region">${esc(T()[r.label])}</div><div class="city-chips">`;
+list.forEach(c=>{
+const on=worldCities.includes(c.id);
+html+=`<button type="button" class="ctrl-btn chip city-chip${on?" on":""}" data-id="${c.id}" aria-pressed="${on}">${on?"✓ ":""}${esc(cityName(c))}</button>`;
+});
+html+="</div></div>";
+});
+
+cityGroups.innerHTML=any ? html : `<div class="alarm-empty">${esc(T().noMatch)}</div>`;
+}
+
+cityGroups.addEventListener("click",e=>{
+const b=e.target.closest(".city-chip");
+if(!b) return;
+const id=b.dataset.id;
+worldCities=worldCities.includes(id) ? worldCities.filter(x=>x!==id) : worldCities.concat(id);
+saveWorld();
+const top=cityGroups.scrollTop;
+renderCityPicker();
+cityGroups.scrollTop=top;
+renderWorld(true);
+});
+
+citySearch.addEventListener("input",renderCityPicker);
+
+function openCityPicker(){
+cityOverlay.classList.add("show");
+citySearch.value="";
+renderCityPicker();
+citySearch.focus();
+}
+
+function closeCityPicker(){
+cityOverlay.classList.remove("show");
+worldAddBtn.focus();
+}
+
+worldAddBtn.onclick=openCityPicker;
+cityClose.onclick=closeCityPicker;
+
+cityOverlay.addEventListener("click",e=>{
+if(e.target===cityOverlay) closeCityPicker();
+});
+
+document.addEventListener("keydown",e=>{
+if(e.key==="Escape" && cityOverlay.classList.contains("show")) closeCityPicker();
+});
+
+// 每秒刷新（只在世界时钟页面可见时）
+setTick(()=>{
+if(worldWrapper.classList.contains("show")) renderWorld(false);
+},1000);
+
+setWorldMode(false);
+
+
+// =====================================================
+// 中英文文案应用到所有新增面板
+// =====================================================
+function applyNewLang(){
+const t=T();
+document.documentElement.lang=lang==="zh" ? "zh-CN" : "en";
+
+document.querySelectorAll("[data-i18n]").forEach(el=>el.textContent=t[el.dataset.i18n]);
+document.querySelectorAll("[data-i18n-title]").forEach(el=>{
+el.title=t[el.dataset.i18nTitle];
+el.setAttribute("aria-label",t[el.dataset.i18nTitle]);
+});
+document.querySelectorAll("[data-i18n-ph]").forEach(el=>el.placeholder=t[el.dataset.i18nPh]);
+document.querySelectorAll("[data-aria-key]").forEach(el=>el.setAttribute("aria-label",t[el.dataset.ariaKey]));
+
+[...weekdayPicker.children].forEach((b,i)=>b.textContent=weekBtnText(i));
+renderPresetLabels();
+renderAlarmList();
+refreshPomodoroLabel();
+renderLaps(true);
+renderWorld(true);
+renderCityPicker();
+updateTitle();
+applyScale();
+}
+
+
+// =====================================================
+// 初始化
+// =====================================================
+changeLanguage();          // 同时会应用新增面板的文案、更新时钟、适配缩放
+applyShift(true);
+applyDim();
+
+const urlMode=location.hash.slice(1);
+let startMode=MODES.includes(urlMode) ? urlMode : localStorage.getItem("flipClockMode");
+if(!MODES.includes(startMode)) startMode="clock";
+switchMode(startMode);
+
+setInterval(update,1000);
+setTick(()=>{ applyDim(); applyShift(false); updateTitle(); },1000);
+setTick(checkAlarms,1000);
+checkAlarms();
+
+showButtons();             // 打开页面时先显示 3 秒按钮，方便发现
 
 </script>
 
