@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glow Theme Switcher</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        lightBg: '#EAEAEA',
+                        darkBg: '#121316',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1), color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Pill Track Skeuomorphism */
+        .switch-track-light {
+            background: linear-gradient(145deg, #e1e1e1, #f5f5f5);
+            box-shadow: 
+                inset 5px 5px 12px rgba(0, 0, 0, 0.12),
+                inset -5px -5px 12px rgba(255, 255, 255, 0.9),
+                0 10px 25px -5px rgba(0, 0, 0, 0.08);
+        }
+
+        .switch-track-dark {
+            background: linear-gradient(145deg, #18191c, #0d0e10);
+            box-shadow: 
+                inset 4px 4px 10px rgba(0, 0, 0, 0.8),
+                inset -3px -3px 8px rgba(255, 255, 255, 0.05),
+                0 15px 30px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Knob Glassmorphism Styling */
+        .knob-light {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(230, 230, 230, 0.75) 100%);
+            box-shadow: 
+                0 8px 20px rgba(0, 0, 0, 0.12),
+                inset 1px 1px 2px rgba(255, 255, 255, 1),
+                inset -1px -1px 3px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .knob-dark {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.05) 100%);
+            box-shadow: 
+                0 8px 25px rgba(0, 0, 0, 0.6),
+                inset 1px 1px 2px rgba(255, 255, 255, 0.4),
+                inset -1px -1px 3px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Ambient Glow Effect */
+        .glow-halo-sun {
+            box-shadow: 
+                0 0 30px 6px rgba(255, 160, 0, 0.45),
+                inset 0 0 15px rgba(255, 180, 0, 0.3);
+        }
+
+        .glow-halo-moon {
+            box-shadow: 
+                0 0 35px 8px rgba(80, 130, 255, 0.5),
+                inset 0 0 15px rgba(120, 160, 255, 0.3);
+        }
+
+        /* Border Arc Light Tube Effect */
+        .glow-arc {
+            position: absolute;
+            inset: -1px;
+            border-radius: 28px;
+            pointer-events: none;
+            padding: 2px;
+            background: transparent;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            -webkit-mask-composite: destination-out;
+        }
+
+        .glow-arc-sun {
+            background: conic-gradient(from 220deg at 50% 50%, transparent 0deg, #ffb700 40deg, #ffe600 80deg, transparent 120deg);
+            filter: drop-shadow(0 0 6px #ffaa00) drop-shadow(0 0 12px #ff8800);
+        }
+
+        .glow-arc-moon {
+            background: conic-gradient(from 40deg at 50% 50%, transparent 0deg, #38bdf8 50deg, #818cf8 100deg, transparent 150deg);
+            filter: drop-shadow(0 0 8px #38bdf8) drop-shadow(0 0 14px #6366f1);
+        }
+
+        /* Smooth spring response on hover/click when not dragging */
+        .toggle-knob {
+            touch-action: none;
+            user-select: none;
+        }
+
+        .toggle-knob.animating {
+            transition: transform 0.45s cubic-bezier(0.34, 1.45, 0.64, 1);
+        }
+    </style>
+</head>
+<body id="body" class="bg-lightBg text-slate-800 dark:bg-darkBg dark:text-slate-100 min-h-screen flex flex-col items-center justify-center p-4 select-none overflow-hidden transition-none">
+
+    <!-- Container with ambient glow background layer -->
+    <div class="relative flex items-center justify-center">
+        <!-- Ambient Radial Background Glow -->
+        <div id="ambientGlow" class="absolute w-[420px] h-[420px] rounded-full pointer-events-none opacity-90 transition-none"></div>
+
+        <!-- Switch Track Container -->
+        <div id="switchTrack" class="relative w-[240px] h-[124px] rounded-[42px] p-2 switch-track-light transition-none cursor-pointer flex items-center">
+            
+            <!-- Sliding Knob -->
+            <div id="knob" class="toggle-knob relative w-[108px] h-[108px] rounded-[34px] knob-light flex items-center justify-center cursor-grab active:cursor-grabbing overflow-hidden">
+                <!-- Glowing Rim Light Arc -->
+                <div id="glowArc" class="glow-arc glow-arc-sun"></div>
+
+                <!-- Canvas Centered via Flexbox -->
+                <canvas id="pixelCanvas" width="96" height="96" class="w-[84px] h-[84px] pointer-events-none"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Subtitle -->
+    <div class="absolute bottom-12 text-center pointer-events-none">
+        <span id="statusText" class="text-xs font-semibold tracking-widest uppercase opacity-40 font-mono">Light Mode</span>
+    </div>
+
+    <script>
+        // DOM Elements
+        const body = document.getElementById('body');
+        const switchTrack = switchTrackEl = document.getElementById('switchTrack');
+        const knob = document.getElementById('knob');
+        const glowArc = document.getElementById('glowArc');
+        const ambientGlow = document.getElementById('ambientGlow');
+        const statusText = document.getElementById('statusText');
+        const canvas = document.getElementById('pixelCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Color definitions for interpolation
+        const LIGHT_BG = [234, 234, 234];
+        const DARK_BG = [18, 19, 22];
+
+        const LIGHT_GLOW_COLOR = [255, 170, 0];
+        const DARK_GLOW_COLOR = [80, 120, 255];
+
+        // Pixel Grids based on exact reference screenshots
+        // 1 = Bright Solid Pixel, 2 = Translucent/Dark Checker Pixel, 3 = Pixel Star
+        const SUN_GRID = [
+            [0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+            [0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+            [0,0,1,0,0,0,0,0,0,0,1,0,0,0],
+            [0,0,0,1,0,0,0,0,0,1,0,0,0,0],
+            [0,0,0,0,1,1,1,1,1,0,0,0,0,0],
+            [0,0,0,0,1,1,1,1,1,0,0,0,0,0],
+            [1,1,0,1,1,1,1,1,1,1,0,1,1,0],
+            [1,1,0,1,1,1,1,1,1,1,0,1,1,0],
+            [0,0,0,0,1,1,1,1,1,0,0,0,0,0],
+            [0,0,0,0,1,1,1,1,1,0,0,0,0,0],
+            [0,0,0,1,0,0,0,0,0,1,0,0,0,0],
+            [0,0,1,0,0,0,0,0,0,0,1,0,0,0],
+            [0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+            [0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+        ];
+
+        const MOON_GRID = [
+            [0,0,0,0,0,0,0,0,0,0,0,1,0,0],
+            [0,0,0,0,0,0,0,0,0,0,1,3,1,0],
+            [0,0,0,0,1,1,1,2,2,0,0,1,0,0],
+            [0,0,0,1,1,1,2,2,2,2,0,0,1,0],
+            [0,0,1,1,1,2,2,2,2,2,2,0,0,0],
+            [0,1,1,1,1,2,2,2,2,2,2,0,0,0],
+            [0,1,1,1,1,2,2,2,2,2,2,0,0,0],
+            [0,1,1,1,1,2,2,2,2,2,0,0,0,0],
+            [0,1,1,1,1,1,2,2,2,2,0,0,0,0],
+            [0,0,1,1,1,1,1,1,2,0,0,0,0,0],
+            [0,0,0,1,1,1,1,1,0,0,0,0,0,0],
+            [0,0,0,0,1,1,1,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        ];
+
+        function lerp(a, b, t) {
+            return a + (b - a) * t;
+        }
+
+        function lerpColor(c1, c2, t) {
+            return [
+                Math.round(lerp(c1[0], c2[0], t)),
+                Math.round(lerp(c1[1], c2[1], t)),
+                Math.round(lerp(c1[2], c2[2], t))
+            ];
+        }
+
+        // Generate target pixel coordinates centered strictly
+        function getGridPoints(grid) {
+            const points = [];
+            const pixelSize = 4.2;
+            const cols = grid[0].length;
+            const rows = grid.length;
+            const offsetX = (canvas.width - (cols * pixelSize)) / 2;
+            const offsetY = (canvas.height - (rows * pixelSize)) / 2;
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const type = grid[r][c];
+                    if (type > 0) {
+                        points.push({
+                            x: offsetX + c * pixelSize,
+                            y: offsetY + r * pixelSize,
+                            size: pixelSize - 0.6,
+                            type: type
+                        });
+                    }
+                }
+            }
+            return points;
+        }
+
+        const sunPoints = getGridPoints(SUN_GRID);
+        const moonPoints = getGridPoints(MOON_GRID);
+
+        const particleCount = Math.max(sunPoints.length, moonPoints.length);
+        const seedNoise = [];
+
+        for (let i = 0; i < particleCount; i++) {
+            seedNoise.push({
+                angle: Math.random() * Math.PI * 2,
+                dist: 22 + Math.random() * 30
+            });
+        }
+
+        const maxOffset = 116; // Track width (240) - padding(16) - knob(108) = 116
+        let progress = 1; // 1 = Light/Right, 0 = Dark/Left
+        let isDragging = false;
+        let startX = 0;
+        let startProgress = 1;
+        let hasDragged = false;
+
+        function updateUI(t) {
+            progress = Math.max(0, Math.min(1, t));
+
+            // Position Knob
+            const currentX = progress * maxOffset;
+            knob.style.transform = `translateX(${currentX}px)`;
+
+            // Interpolate Page Background
+            const bg = lerpColor(DARK_BG, LIGHT_BG, progress);
+            body.style.backgroundColor = `rgb(${bg[0]}, ${bg[1]}, ${bg[2]})`;
+
+            // Interpolate Ambient Radial Glow
+            const glowColor = lerpColor(DARK_GLOW_COLOR, LIGHT_GLOW_COLOR, progress);
+            ambientGlow.style.background = `radial-gradient(circle, rgba(${glowColor[0]}, ${glowColor[1]}, ${glowColor[2]}, ${0.25 + progress * 0.15}) 0%, rgba(${glowColor[0]}, ${glowColor[1]}, ${glowColor[2]}, 0) 70%)`;
+
+            // Knob Glow & Arc Styles
+            if (progress > 0.5) {
+                knob.className = `toggle-knob relative w-[108px] h-[108px] rounded-[34px] knob-light glow-halo-sun flex items-center justify-center cursor-grab active:cursor-grabbing ${isDragging ? '' : 'animating'}`;
+                glowArc.className = "glow-arc glow-arc-sun";
+                switchTrack.className = "relative w-[240px] h-[124px] rounded-[42px] p-2 switch-track-light transition-none cursor-pointer flex items-center";
+                statusText.textContent = "Light Mode";
+            } else {
+                knob.className = `toggle-knob relative w-[108px] h-[108px] rounded-[34px] knob-dark glow-halo-moon flex items-center justify-center cursor-grab active:cursor-grabbing ${isDragging ? '' : 'animating'}`;
+                glowArc.className = "glow-arc glow-arc-moon";
+                switchTrack.className = "relative w-[240px] h-[124px] rounded-[42px] p-2 switch-track-dark transition-none cursor-pointer flex items-center";
+                statusText.textContent = "Dark Mode";
+            }
+
+            drawParticles(progress);
+        }
+
+        function drawParticles(t) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const dispersion = 1 - Math.abs(t - 0.5) * 2; // 0 at ends, 1 in middle
+
+            for (let i = 0; i < particleCount; i++) {
+                const sunP = sunPoints[i % sunPoints.length];
+                const moonP = moonPoints[i % moonPoints.length];
+
+                let px = lerp(moonP.x, sunP.x, t);
+                let py = lerp(moonP.y, sunP.y, t);
+
+                if (dispersion > 0) {
+                    const noise = seedNoise[i];
+                    px += Math.cos(noise.angle) * noise.dist * dispersion;
+                    py += Math.sin(noise.angle) * noise.dist * dispersion;
+                }
+
+                // Determine pixel color and opacity based on pixel type and mode transition
+                const targetPoint = t > 0.5 ? sunP : moonP;
+                let fillStyle = "#ffffff";
+                let alpha = 1;
+
+                if (t > 0.5) {
+                    // Sun Mode Palette
+                    fillStyle = "#2d3748";
+                } else {
+                    // Moon Mode Palette
+                    if (targetPoint.type === 2) {
+                        fillStyle = "#ffffff";
+                        alpha = 0.22; // Translucent inner moon grid
+                    } else if (targetPoint.type === 3) {
+                        fillStyle = "#fbbf24"; // Warm star pixel accent
+                        alpha = 0.9;
+                    } else {
+                        fillStyle = "#ffffff";
+                    }
+                }
+
+                if (dispersion > 0) {
+                    alpha *= (1 - dispersion * 0.5);
+                }
+
+                ctx.fillStyle = fillStyle;
+                ctx.globalAlpha = alpha;
+                ctx.fillRect(px, py, 3.6, 3.6);
+            }
+        }
+
+        // Pointer Events
+        function onPointerDown(e) {
+            isDragging = true;
+            hasDragged = false;
+            startX = e.clientX || (e.touches && e.touches[0].clientX);
+            startProgress = progress;
+
+            knob.classList.remove('animating');
+            knob.setPointerCapture(e.pointerId);
+        }
+
+        function onPointerMove(e) {
+            if (!isDragging) return;
+
+            const currentX = e.clientX || (e.touches && e.touches[0].clientX);
+            const deltaX = currentX - startX;
+
+            if (Math.abs(deltaX) > 3) {
+                hasDragged = true;
+            }
+
+            const deltaProgress = deltaX / maxOffset;
+            updateUI(startProgress + deltaProgress);
+        }
+
+        function onPointerUp(e) {
+            if (!isDragging) return;
+            isDragging = false;
+
+            knob.classList.add('animating');
+
+            if (!hasDragged) {
+                const target = progress > 0.5 ? 0 : 1;
+                animateTo(target);
+            } else {
+                const target = progress > 0.5 ? 1 : 0;
+                animateTo(target);
+            }
+        }
+
+        function animateTo(targetProgress) {
+            const start = progress;
+            const startTime = performance.now();
+            const duration = 380;
+
+            function step(now) {
+                const elapsed = now - startTime;
+                const p = Math.min(1, elapsed / duration);
+                const ease = 1 - Math.pow(1 - p, 3);
+                const current = lerp(start, targetProgress, ease);
+
+                updateUI(current);
+
+                if (p < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    updateUI(targetProgress);
+                }
+            }
+
+            requestAnimationFrame(step);
+        }
+
+        knob.addEventListener('pointerdown', onPointerDown);
+        window.addEventListener('pointermove', onPointerMove);
+        window.addEventListener('pointerup', onPointerUp);
+
+        switchTrack.addEventListener('click', (e) => {
+            if (e.target === knob || knob.contains(e.target)) return;
+            const rect = switchTrack.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const target = clickX > rect.width / 2 ? 1 : 0;
+            animateTo(target);
+        });
+
+        window.onload = () => {
+            updateUI(1);
+        };
+    </script>
+</body>
+</html>
